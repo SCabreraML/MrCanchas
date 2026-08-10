@@ -36,6 +36,7 @@ fun CourtDetailScreen(
     val scope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager(context) }
     val isAdmin = sessionManager.isAdmin()
+    val isGuest = sessionManager.isGuest()
 
     var court by remember { mutableStateOf<Court?>(null) }
     var timeSlots by remember { mutableStateOf<List<TimeSlot>>(emptyList()) }
@@ -168,7 +169,7 @@ fun CourtDetailScreen(
                             items(timeSlots) { slot ->
                                 TimeSlotCard(
                                     timeSlot = slot,
-                                    showReserveButton = !isAdmin, // Only show reserve button to non-admins (users)
+                                    showReserveButton = !isAdmin && !isGuest, // Hide reserve button for both ADMIN and GUEST roles
                                     onReserveClick = {
                                         scope.launch {
                                             try {

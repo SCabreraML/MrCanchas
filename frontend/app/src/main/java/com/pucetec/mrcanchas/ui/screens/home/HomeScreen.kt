@@ -29,9 +29,10 @@ fun HomeScreen(
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
 
-    val userName = sessionManager.getUserName() ?: "Usuario"
-    val userEmail = sessionManager.getUserEmail() ?: "Email no disponible"
+    val userName = sessionManager.getUserName() ?: "Invitado"
+    val userEmail = sessionManager.getUserEmail() ?: "Acceso Público"
     val isAdmin = sessionManager.isAdmin()
+    val isGuest = sessionManager.isGuest()
 
     Scaffold(
         topBar = {
@@ -47,7 +48,7 @@ fun HomeScreen(
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
-                            contentDescription = "Cerrar Sesión",
+                            contentDescription = "Salir",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -95,14 +96,14 @@ fun HomeScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "¡Hola, $userName!",
+                            text = if (isGuest) "¡Bienvenido, Invitado!" else "¡Hola, $userName!",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = userEmail,
+                            text = if (isGuest) "Consulta canchas y horarios sin registrarte" else userEmail,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -121,6 +122,19 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                    } else if (isGuest) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "GUEST",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -129,7 +143,7 @@ fun HomeScreen(
 
             // Main Actions Group
             Text(
-                text = "Acciones Principales",
+                text = "Acciones Disponibles",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -138,7 +152,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sports courts button (Visible to both USER and ADMIN)
+            // Sports courts button (Visible to everyone: GUEST, USER, ADMIN)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -167,7 +181,7 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Encuentra y agenda tu cancha",
+                            text = "Encuentra y consulta horarios",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )
@@ -175,8 +189,8 @@ fun HomeScreen(
                 }
             }
 
-            // Mis Reservas is ONLY visible to USER role (Admins cannot perform /me reservations queries)
-            if (!isAdmin) {
+            // Mis Reservas is ONLY visible to USER role (Admins and Guests do not have a /me reservations query permission)
+            if (!isAdmin && !isGuest) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(

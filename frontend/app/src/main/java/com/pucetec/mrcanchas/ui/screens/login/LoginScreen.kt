@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -137,7 +136,7 @@ fun LoginScreen(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 if (isLoading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -184,8 +183,10 @@ fun LoginScreen(
                                     }
 
                                     // 3. Save session credentials
+                                    sessionManager.clearSession()
                                     sessionManager.saveToken(accessToken)
                                     sessionManager.saveAdminStatus(isAdmin)
+                                    sessionManager.saveGuestStatus(false)
 
                                     val name = claims?.get("name") as? String
                                         ?: claims?.get("cognito:username") as? String
@@ -245,6 +246,32 @@ fun LoginScreen(
                             text = "Iniciar Sesión",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Public/Guest Login Button
+                    OutlinedButton(
+                        onClick = {
+                            sessionManager.clearSession()
+                            sessionManager.saveGuestStatus(true)
+                            sessionManager.saveUserProfile("Invitado", "Acceso Público", "")
+                            Toast.makeText(context, "Ingresaste como Invitado", Toast.LENGTH_SHORT).show()
+                            onLoginSuccess()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Entrar como Invitado",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
