@@ -1,0 +1,523 @@
+{
+  "info": {
+    "_postman_id": "f760fbc4-aa03-4793-9164-51d6741c0647",
+    "name": "Courts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55061526",
+    "_collection_link": "https://go.postman.co/collection/55061526-f760fbc4-aa03-4793-9164-51d6741c0647?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Obtener todas las canchas",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/courts",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "courts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener cancha por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/courts/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "courts",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Crear cancha",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Cancha Sintética 1\",\r\n  \"sport\": \"Fútbol 7\",\r\n  \"location\": \"Bloque A\",\r\n  \"available\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/courts",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "courts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Actualizar cancha",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Cancha Sintética 1 (Remodelada)\",\r\n  \"sport\": \"Fútbol 7\",\r\n  \"location\": \"Bloque A\",\r\n  \"available\": false\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/courts/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "courts",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Eliminar cancha",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhNGU4NDQxOC0wMDExLTcwYTYtODE0NC1hMDBjM2FmMmY2MDEiLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL3VzLWVhc3QtMV9xZWdHQVFjNU8iLCJjbGllbnRfaWQiOiIyYm9jdGIzNmV1aHFmdDZycHB1cGV1bTdxbiIsIm9yaWdpbl9qdGkiOiIxNTYxZmQ0Zi01YTMxLTQwM2ItOTY3OC00MGViYmIwZTMyY2MiLCJldmVudF9pZCI6IjE2ZjNiMjhhLWZmYmEtNGRhZi1iZDE0LTM3NDQyMzlkNjcxYiIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3ODUzNjQ1OTMsImV4cCI6MTc4NTM2ODE5MywiaWF0IjoxNzg1MzY0NTkzLCJqdGkiOiJjNGExOTY0NS0zODVmLTQ4ZmUtOGFjMi05NzllZDdhZmQ0NzAiLCJ1c2VybmFtZSI6ImFkbWluaXN0cmFkb3JfMSJ9.uc-EjjbtcIgqgbUH4s2M1fITPsVXUSETZmOV-FS9hQydbDKkB5Jd2Idqr_5gh1latEpdtIZWtit8UKd9Z40ooWmPnFaEnRQ7S8IBHvcJv63KQOf3okgX--h5dExR1vdyD9cc4Fqe3y5Qav2dBR2BjV6O2GCtkU-ciJ0uDSMdifDKpI2tNyGkZNa08fB7Tvaomry4IoTPRcn32shwbAaHwFOOIH-FcWD1-qn1OmuO5S05atMUvSgsPFOZ1SKb7lT80e7KLjVE9Jg6ufRP1iq-0-Nr5Mbch6ntm89hVgHJlY_JBBhysMoGjudlVBg7Q8uVlhgNcdmP7l_d7fhzGLvOAA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/courts/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "courts",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Crear horario",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhNGU4NDQxOC0wMDExLTcwYTYtODE0NC1hMDBjM2FmMmY2MDEiLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL3VzLWVhc3QtMV9xZWdHQVFjNU8iLCJjbGllbnRfaWQiOiIyYm9jdGIzNmV1aHFmdDZycHB1cGV1bTdxbiIsIm9yaWdpbl9qdGkiOiIxNTYxZmQ0Zi01YTMxLTQwM2ItOTY3OC00MGViYmIwZTMyY2MiLCJldmVudF9pZCI6IjE2ZjNiMjhhLWZmYmEtNGRhZi1iZDE0LTM3NDQyMzlkNjcxYiIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3ODUzNjQ1OTMsImV4cCI6MTc4NTM2ODE5MywiaWF0IjoxNzg1MzY0NTkzLCJqdGkiOiJjNGExOTY0NS0zODVmLTQ4ZmUtOGFjMi05NzllZDdhZmQ0NzAiLCJ1c2VybmFtZSI6ImFkbWluaXN0cmFkb3JfMSJ9.uc-EjjbtcIgqgbUH4s2M1fITPsVXUSETZmOV-FS9hQydbDKkB5Jd2Idqr_5gh1latEpdtIZWtit8UKd9Z40ooWmPnFaEnRQ7S8IBHvcJv63KQOf3okgX--h5dExR1vdyD9cc4Fqe3y5Qav2dBR2BjV6O2GCtkU-ciJ0uDSMdifDKpI2tNyGkZNa08fB7Tvaomry4IoTPRcn32shwbAaHwFOOIH-FcWD1-qn1OmuO5S05atMUvSgsPFOZ1SKb7lT80e7KLjVE9Jg6ufRP1iq-0-Nr5Mbch6ntm89hVgHJlY_JBBhysMoGjudlVBg7Q8uVlhgNcdmP7l_d7fhzGLvOAA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"courtId\": 3,\r\n  \"date\": \"2026-08-10\",\r\n  \"startTime\": \"16:00:00\",\r\n  \"endTime\": \"17:00:00\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener todos los horarios",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener horario por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener horarios por cancha",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots/court/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots",
+            "court",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Actualizar horario",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhNGU4NDQxOC0wMDExLTcwYTYtODE0NC1hMDBjM2FmMmY2MDEiLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL3VzLWVhc3QtMV9xZWdHQVFjNU8iLCJjbGllbnRfaWQiOiIyYm9jdGIzNmV1aHFmdDZycHB1cGV1bTdxbiIsIm9yaWdpbl9qdGkiOiIxNTYxZmQ0Zi01YTMxLTQwM2ItOTY3OC00MGViYmIwZTMyY2MiLCJldmVudF9pZCI6IjE2ZjNiMjhhLWZmYmEtNGRhZi1iZDE0LTM3NDQyMzlkNjcxYiIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3ODUzNjQ1OTMsImV4cCI6MTc4NTM2ODE5MywiaWF0IjoxNzg1MzY0NTkzLCJqdGkiOiJjNGExOTY0NS0zODVmLTQ4ZmUtOGFjMi05NzllZDdhZmQ0NzAiLCJ1c2VybmFtZSI6ImFkbWluaXN0cmFkb3JfMSJ9.uc-EjjbtcIgqgbUH4s2M1fITPsVXUSETZmOV-FS9hQydbDKkB5Jd2Idqr_5gh1latEpdtIZWtit8UKd9Z40ooWmPnFaEnRQ7S8IBHvcJv63KQOf3okgX--h5dExR1vdyD9cc4Fqe3y5Qav2dBR2BjV6O2GCtkU-ciJ0uDSMdifDKpI2tNyGkZNa08fB7Tvaomry4IoTPRcn32shwbAaHwFOOIH-FcWD1-qn1OmuO5S05atMUvSgsPFOZ1SKb7lT80e7KLjVE9Jg6ufRP1iq-0-Nr5Mbch6ntm89hVgHJlY_JBBhysMoGjudlVBg7Q8uVlhgNcdmP7l_d7fhzGLvOAA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"courtId\": 2,\r\n  \"date\": \"2026-08-01\",\r\n  \"startTime\": \"15:00:00\",\r\n  \"endTime\": \"16:00:00\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Crear reserva",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI3NGY4NjRiOC0zMDcxLTcwYWUtMmQyMC1iMWFmMTg1ZWNkNDciLCJjb2duaXRvOmdyb3VwcyI6WyJVU0VSIl0sImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vdXMtZWFzdC0xX3FlZ0dBUWM1TyIsImNsaWVudF9pZCI6IjJib2N0YjM2ZXVocWZ0NnJwcHVwZXVtN3FuIiwib3JpZ2luX2p0aSI6ImU5NWE2MmQ1LWUwYzItNDVhOC05ZGJhLTBmMjJmOTQ1ZjE1NiIsImV2ZW50X2lkIjoiNjliNzU3MDgtYWVjOC00MTMxLWE5NTYtMjNhMzQ4YTk2ZTdhIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc4NTM2NDQ5NCwiZXhwIjoxNzg1MzY4MDk0LCJpYXQiOjE3ODUzNjQ0OTQsImp0aSI6IjdlN2EyMzdkLTgwYjQtNDkwNS1hM2FiLTNkOTM1YmE3MDIyYiIsInVzZXJuYW1lIjoidXN1YXJpb18xIn0.Gn6Q4d1zU1ZlPq2Th2PioJuQvPX9vrB0v_4hUdLy3C2Hd_mgdmCCdFk4G63hATfqZmKZM8BlK15wiD9Mb7Q2Knq-ecTpM4-gOLVrFtJWoh8rF2LqxyI2nhvoKOdDGKeAauM4R4pwE0Lvebn3EW8mAU9YPXhtA4PScRHT1q-0RGUcAeHyTP-Hsb9gbB5AnJOFoVmtjhPMplR0-ou2ClyND0QoL3ymGM5zHTvuKiwHSoihAqy3p3lo0Fs9hiwdt0LYvzZ0z7EdWVGnrw2xa89oPWpVBkvVAS6xpQSwP8gaKfa4IvpV2d2Sxe4Gh5bMnv5adzouLJkGyY3M4pW6jMMPhg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"timeSlotId\": 3\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/reservations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "reservations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener mis reservas",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI3NGY4NjRiOC0zMDcxLTcwYWUtMmQyMC1iMWFmMTg1ZWNkNDciLCJjb2duaXRvOmdyb3VwcyI6WyJVU0VSIl0sImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vdXMtZWFzdC0xX3FlZ0dBUWM1TyIsImNsaWVudF9pZCI6IjJib2N0YjM2ZXVocWZ0NnJwcHVwZXVtN3FuIiwib3JpZ2luX2p0aSI6ImU5NWE2MmQ1LWUwYzItNDVhOC05ZGJhLTBmMjJmOTQ1ZjE1NiIsImV2ZW50X2lkIjoiNjliNzU3MDgtYWVjOC00MTMxLWE5NTYtMjNhMzQ4YTk2ZTdhIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc4NTM2NDQ5NCwiZXhwIjoxNzg1MzY4MDk0LCJpYXQiOjE3ODUzNjQ0OTQsImp0aSI6IjdlN2EyMzdkLTgwYjQtNDkwNS1hM2FiLTNkOTM1YmE3MDIyYiIsInVzZXJuYW1lIjoidXN1YXJpb18xIn0.Gn6Q4d1zU1ZlPq2Th2PioJuQvPX9vrB0v_4hUdLy3C2Hd_mgdmCCdFk4G63hATfqZmKZM8BlK15wiD9Mb7Q2Knq-ecTpM4-gOLVrFtJWoh8rF2LqxyI2nhvoKOdDGKeAauM4R4pwE0Lvebn3EW8mAU9YPXhtA4PScRHT1q-0RGUcAeHyTP-Hsb9gbB5AnJOFoVmtjhPMplR0-ou2ClyND0QoL3ymGM5zHTvuKiwHSoihAqy3p3lo0Fs9hiwdt0LYvzZ0z7EdWVGnrw2xa89oPWpVBkvVAS6xpQSwP8gaKfa4IvpV2d2Sxe4Gh5bMnv5adzouLJkGyY3M4pW6jMMPhg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/reservations/my-reservations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "reservations",
+            "my-reservations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reserva por ID",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "Cancelar reserva",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI3NGY4NjRiOC0zMDcxLTcwYWUtMmQyMC1iMWFmMTg1ZWNkNDciLCJjb2duaXRvOmdyb3VwcyI6WyJVU0VSIl0sImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vdXMtZWFzdC0xX3FlZ0dBUWM1TyIsImNsaWVudF9pZCI6IjJib2N0YjM2ZXVocWZ0NnJwcHVwZXVtN3FuIiwib3JpZ2luX2p0aSI6ImU5NWE2MmQ1LWUwYzItNDVhOC05ZGJhLTBmMjJmOTQ1ZjE1NiIsImV2ZW50X2lkIjoiNjliNzU3MDgtYWVjOC00MTMxLWE5NTYtMjNhMzQ4YTk2ZTdhIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc4NTM2NDQ5NCwiZXhwIjoxNzg1MzY4MDk0LCJpYXQiOjE3ODUzNjQ0OTQsImp0aSI6IjdlN2EyMzdkLTgwYjQtNDkwNS1hM2FiLTNkOTM1YmE3MDIyYiIsInVzZXJuYW1lIjoidXN1YXJpb18xIn0.Gn6Q4d1zU1ZlPq2Th2PioJuQvPX9vrB0v_4hUdLy3C2Hd_mgdmCCdFk4G63hATfqZmKZM8BlK15wiD9Mb7Q2Knq-ecTpM4-gOLVrFtJWoh8rF2LqxyI2nhvoKOdDGKeAauM4R4pwE0Lvebn3EW8mAU9YPXhtA4PScRHT1q-0RGUcAeHyTP-Hsb9gbB5AnJOFoVmtjhPMplR0-ou2ClyND0QoL3ymGM5zHTvuKiwHSoihAqy3p3lo0Fs9hiwdt0LYvzZ0z7EdWVGnrw2xa89oPWpVBkvVAS6xpQSwP8gaKfa4IvpV2d2Sxe4Gh5bMnv5adzouLJkGyY3M4pW6jMMPhg",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/reservations/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "reservations",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Registrar resultado de un partido",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJraWQiOiJncjB4aVJKL1Ztci9TRzlmb1k2em5yVUo1U2VQQnpMUTJHbkdOWWI3V0FvPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhNGU4NDQxOC0wMDExLTcwYTYtODE0NC1hMDBjM2FmMmY2MDEiLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tL3VzLWVhc3QtMV9xZWdHQVFjNU8iLCJjbGllbnRfaWQiOiIyYm9jdGIzNmV1aHFmdDZycHB1cGV1bTdxbiIsIm9yaWdpbl9qdGkiOiIxNTYxZmQ0Zi01YTMxLTQwM2ItOTY3OC00MGViYmIwZTMyY2MiLCJldmVudF9pZCI6IjE2ZjNiMjhhLWZmYmEtNGRhZi1iZDE0LTM3NDQyMzlkNjcxYiIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3ODUzNjQ1OTMsImV4cCI6MTc4NTM2ODE5MywiaWF0IjoxNzg1MzY0NTkzLCJqdGkiOiJjNGExOTY0NS0zODVmLTQ4ZmUtOGFjMi05NzllZDdhZmQ0NzAiLCJ1c2VybmFtZSI6ImFkbWluaXN0cmFkb3JfMSJ9.uc-EjjbtcIgqgbUH4s2M1fITPsVXUSETZmOV-FS9hQydbDKkB5Jd2Idqr_5gh1latEpdtIZWtit8UKd9Z40ooWmPnFaEnRQ7S8IBHvcJv63KQOf3okgX--h5dExR1vdyD9cc4Fqe3y5Qav2dBR2BjV6O2GCtkU-ciJ0uDSMdifDKpI2tNyGkZNa08fB7Tvaomry4IoTPRcn32shwbAaHwFOOIH-FcWD1-qn1OmuO5S05atMUvSgsPFOZ1SKb7lT80e7KLjVE9Jg6ufRP1iq-0-Nr5Mbch6ntm89hVgHJlY_JBBhysMoGjudlVBg7Q8uVlhgNcdmP7l_d7fhzGLvOAA",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"teamA\": \"Los Galácticos\",\r\n  \"teamB\": \"Deportivo Ramos\",\r\n  \"scoreA\": 4,\r\n  \"scoreB\": 2,\r\n  \"winner\": \"Los Galácticos\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8989/api/match-results/reservation/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "match-results",
+            "reservation",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Eliminar horario",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/time-slots/{id}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "time-slots",
+            "{id}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obtener resultado por reserva",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8989/api/match-results/reservation/{id}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8989",
+          "path": [
+            "api",
+            "match-results",
+            "reservation",
+            "{id}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

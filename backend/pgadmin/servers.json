@@ -1,0 +1,22 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "users-db",
+      "Group": "Servers",
+      "Host": "users-db",
+      "Port": 5432,
+      "MaintenanceDB": "users_db",
+      "Username": "users_user",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "courts-db",
+      "Group": "Servers",
+      "Host": "courts-db",
+      "Port": 5432,
+      "MaintenanceDB": "courts_db",
+      "Username": "courts_user",
+      "SSLMode": "prefer"
+    }
+  }
+}
