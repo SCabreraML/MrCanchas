@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,7 +41,7 @@ fun HomeScreen(
                 title = {
                     Text(
                         "MrCanchas",
-                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -48,7 +49,7 @@ fun HomeScreen(
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
-                            contentDescription = "Salir",
+                            contentDescription = if (isGuest) "Iniciar Sesión" else "Cerrar Sesión",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -80,7 +81,7 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // User Info Header Card
+            // User/Admin/Guest Profile Header Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -103,21 +104,11 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isGuest) "Consulta canchas y horarios sin registrarte" else userEmail,
+                            text = if (isGuest) "Navegación en modo lectura" else userEmail,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "¡Hola, $userName!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
 
                     if (isAdmin) {
                         Surface(
@@ -145,15 +136,79 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                    } else {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "USER",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Main Actions Group
+            // Information/Guidance based on role
+            if (isGuest) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "💡 Modo Público",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Puedes consultar libremente las canchas y los horarios libres, pero para realizar reservas debes iniciar sesión.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            } else if (isAdmin) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "🛠️ Panel de Gestión Administrativa",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "• Creación, edición y eliminación de canchas\n" +
+                                   "• Gestión de turnos y franjas de horarios\n" +
+                                   "• Registro de puntajes de partidos finalizados\n" +
+                                   "• Consulta global de reservas registradas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            // Main Actions Group Label
             Text(
-                text = "Acciones Disponibles",
+                text = "Acciones del Sistema",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -162,7 +217,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sports courts button (Visible to everyone: GUEST, USER, ADMIN)
+            // Sports courts button (Available to all roles)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -186,12 +241,12 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Ver Canchas y Horarios",
+                            text = "Canchas y Horarios",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Encuentra y consulta horarios",
+                            text = "Consultar lista de canchas de juego",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )
@@ -199,7 +254,7 @@ fun HomeScreen(
                 }
             }
 
-            // Mis Reservas is ONLY visible to USER role (Admins and Guests do not have a /me reservations query permission)
+            // 'Mis Reservas' Action is strictly shown for USER role
             if (!isAdmin && !isGuest) {
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -231,12 +286,29 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Consulta el estado de tus reservas",
+                                text = "Consulta tus reservas y resultados",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
                             )
                         }
                     }
+                }
+            }
+
+            // In Guest session, show a clean shortcut to authenticate
+            if (isGuest) {
+                Spacer(modifier = Modifier.height(32.dp))
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(
+                        text = "Iniciar Sesión con Cognito",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
