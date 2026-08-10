@@ -79,6 +79,7 @@ class ReservationService(
         timeSlot.status = TimeSlot.Status.RESERVED
 
         val reservation = Reservation(
+            id = null,
             timeSlot = timeSlot,
             ownerUser = currentUsername(),
             startDateTime = startDateTime,
