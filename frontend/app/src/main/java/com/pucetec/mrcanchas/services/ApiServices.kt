@@ -1,38 +1,63 @@
+package com.pucetec.mrcanchas.services
+
+import com.pucetec.mrcanchas.models.*
+import retrofit2.http.*
+
 interface ApiService {
 
-    @GET("api/courts")
+    @GET("courts/api/courts")
     suspend fun getCourts(): List<Court>
 
-    @GET("api/courts/{id}")
+    @GET("courts/api/courts/{id}")
     suspend fun getCourt(
         @Path("id") id: Long
     ): Court
 
-    @GET("api/time-slots/court/{courtId}")
+    @GET("courts/api/time-slots/court/{courtId}")
     suspend fun getTimeSlotsByCourt(
         @Path("courtId") courtId: Long
     ): List<TimeSlot>
 
-    @POST("api/reservations")
+    @POST("courts/api/reservations")
     suspend fun createReservation(
         @Body request: ReservationRequest
     ): Reservation
 
-    @GET("api/reservations/me")
+    @GET("courts/api/reservations/me")
     suspend fun getMyReservations(): List<Reservation>
 
-    @GET("api/reservations/{id}")
+    @GET("courts/api/reservations/{id}")
     suspend fun getReservation(
         @Path("id") id: Long
     ): Reservation
 
-    @DELETE("api/reservations/{id}")
+    @DELETE("courts/api/reservations/{id}")
     suspend fun cancelReservation(
         @Path("id") id: Long
     )
 
-    @GET("api/match-results/reservation/{reservationId}")
+    @GET("courts/api/match-results/reservation/{reservationId}")
     suspend fun getMatchResult(
         @Path("reservationId") reservationId: Long
     ): MatchResult
+
+    @POST("courts/api/match-results/reservation/{reservationId}")
+    suspend fun createMatchResult(
+        @Path("reservationId") reservationId: Long,
+        @Body request: MatchResultRequest
+    ): MatchResult
+
+    // User profile endpoints (under /users context path in reverse proxy)
+    @POST("users/api/users/me")
+    suspend fun createMyProfile(
+        @Body request: UserProfileRequest
+    ): UserProfileResponse
+
+    @GET("users/api/users/me")
+    suspend fun getMyProfile(): UserProfileResponse
+
+    @PUT("users/api/users/me")
+    suspend fun updateMyProfile(
+        @Body request: UserProfileRequest
+    ): UserProfileResponse
 }
