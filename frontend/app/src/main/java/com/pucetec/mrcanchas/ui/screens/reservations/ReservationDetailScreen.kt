@@ -6,18 +6,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.models.Reservation
 import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
 import kotlinx.coroutines.launch
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,15 +39,27 @@ fun ReservationDetailScreen(
 
     var reservation by remember { mutableStateOf<Reservation?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     fun loadReservation() {
         isLoading = true
+        errorMessage = null
         scope.launch {
             try {
                 val api = RetrofitClient.getApiService(context)
                 reservation = api.getReservation(reservationId)
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                errorMessage = when (e) {
+                    is UnknownHostException, is ConnectException -> {
+                        "No se pudo conectar con el servidor para obtener los detalles de la reserva. Verifica tu conexión local."
+                    }
+                    is SocketTimeoutException -> {
+                        "El servidor tardó demasiado en responder (Timeout). Por favor, intenta de nuevo."
+                    }
+                    else -> {
+                        e.localizedMessage ?: "Ocurrió un error inesperado al cargar la reserva."
+                    }
+                }
             } finally {
                 isLoading = false
             }
@@ -88,6 +105,48 @@ fun ReservationDetailScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.Center)
                 )
+            } else if (errorMessage != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .align(Alignment.Center),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Error de Servidor",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = errorMessage!!,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(
+                            onClick = { loadReservation() },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
             } else if (reservation == null) {
                 Text(
                     text = "No se pudo cargar la reserva.",

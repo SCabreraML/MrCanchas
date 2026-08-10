@@ -1,7 +1,6 @@
 package com.pucetec.mrcanchas.ui.screens.login
 
 import android.util.Base64
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +25,10 @@ import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import retrofit2.HttpException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 // Helper function to safely decode JWT payload to a Map
 fun decodeJwtPayload(token: String): Map<String, Any>? {
@@ -62,6 +65,26 @@ fun LoginScreen(
     var usernameInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+
+    // Alert Dialog States
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var alertTitle by remember { mutableStateOf("") }
+    var alertMessage by remember { mutableStateOf("") }
+
+    // Dialog for clean error presenting
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text(alertTitle, fontWeight = FontWeight.Bold) },
+            text = { Text(alertMessage) },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("Entendido")
+                }
+            },
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
 
     Box(
         modifier = modifier
@@ -136,17 +159,32 @@ fun LoginScreen(
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
                 if (isLoading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 } else {
                     Button(
                         onClick = {
-                            if (usernameInput.isBlank() || passwordInput.isBlank()) {
-                                Toast.makeText(context, "Por favor ingrese usuario y contraseña", Toast.LENGTH_SHORT).show()
+                            if (usernameInput.isBlank() && passwordInput.isBlank()) {
+                                alertTitle = "Campos Vacíos"
+                                alertMessage = "Por favor, ingresa tanto el usuario como la contraseña para iniciar sesión."
+                                showErrorDialog = true
                                 return@Button
                             }
+                            if (usernameInput.isBlank()) {
+                                alertTitle = "Usuario Requerido"
+                                alertMessage = "El campo de usuario o correo electrónico no puede estar vacío."
+                                showErrorDialog = true
+                                return@Button
+                            }
+                            if (passwordInput.isBlank()) {
+                                alertTitle = "Contraseña Requerida"
+                                alertMessage = "El campo de contraseña no puede estar vacío."
+                                showErrorDialog = true
+                                return@Button
+                            }
+
                             isLoading = true
 
                             scope.launch {
@@ -206,9 +244,9 @@ fun LoginScreen(
                                             profile.email,
                                             profile.phone
                                         )
-                                        Toast.makeText(context, "¡Bienvenido, ${profile.name}!", Toast.LENGTH_SHORT).show()
                                         onLoginSuccess()
                                     } catch (eGet: Exception) {
+                                        // If get profile fails, try creating it automatically
                                         try {
                                             val newProfile = backendApi.createMyProfile(
                                                 UserProfileRequest(
@@ -222,16 +260,44 @@ fun LoginScreen(
                                                 newProfile.email,
                                                 newProfile.phone
                                             )
-                                            Toast.makeText(context, "Sesión iniciada con éxito!", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         } catch (eCreate: Exception) {
+                                            // Fallback profile details offline if backend is unreachable or similar
                                             sessionManager.saveUserProfile(name, email, phone)
-                                            Toast.makeText(context, "Sesión iniciada (Perfil temporal)", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         }
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    alertTitle = "Fallo de Autenticación"
+                                    alertMessage = when (e) {
+                                        is UnknownHostException, is ConnectException -> {
+                                            "No se puede contactar con Cognito. Verifica tu conexión a internet (Wi-Fi o datos móviles)."
+                                        }
+                                        is SocketTimeoutException -> {
+                                            "La solicitud con el servidor de autenticación ha expirado. Reintenta de nuevo."
+                                        }
+                                        is HttpException -> {
+                                            val errorBody = e.response()?.errorBody()?.string() ?: ""
+                                            when {
+                                                errorBody.contains("NotAuthorizedException") -> {
+                                                    "Contraseña o usuario incorrectos. Verifica tus credenciales."
+                                                }
+                                                errorBody.contains("UserNotFoundException") -> {
+                                                    "El usuario ingresado no existe en el sistema."
+                                                }
+                                                errorBody.contains("UserNotConfirmedException") -> {
+                                                    "El usuario aún no ha sido confirmado. Por favor, revisa tu correo electrónico."
+                                                }
+                                                else -> {
+                                                    "Error del servidor de Cognito (Código ${e.code()}). Intente de nuevo."
+                                                }
+                                            }
+                                        }
+                                        else -> {
+                                            e.localizedMessage ?: "Ocurrió un error inesperado al iniciar sesión."
+                                        }
+                                    }
+                                    showErrorDialog = true
                                 } finally {
                                     isLoading = false
                                 }
@@ -257,7 +323,6 @@ fun LoginScreen(
                             sessionManager.clearSession()
                             sessionManager.saveGuestStatus(true)
                             sessionManager.saveUserProfile("Invitado", "Acceso Público", "")
-                            Toast.makeText(context, "Ingresaste como Invitado", Toast.LENGTH_SHORT).show()
                             onLoginSuccess()
                         },
                         modifier = Modifier
