@@ -1,7 +1,9 @@
 package com.pucetec.mrcanchas.ui.screens.reservations
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -9,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pucetec.mrcanchas.models.Reservation
 import com.pucetec.mrcanchas.services.RetrofitClient
@@ -36,7 +39,7 @@ fun ReservationDetailScreen(
                 val api = RetrofitClient.getApiService(context)
                 reservation = api.getReservation(reservationId)
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al cargar reserva: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             } finally {
                 isLoading = false
             }
@@ -50,7 +53,12 @@ fun ReservationDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reserva #${reservationId}") },
+                title = {
+                    Text(
+                        "Reserva #${reservationId}",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
@@ -67,10 +75,14 @@ fun ReservationDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             } else if (reservation == null) {
                 Text(
                     text = "No se pudo cargar la reserva.",
@@ -87,26 +99,36 @@ fun ReservationDetailScreen(
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
+                        Column(modifier = Modifier.padding(24.dp)) {
                             Text(
-                                text = "Reserva Detalles",
+                                text = "Información General",
                                 style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("ID: ${reservation!!.id}")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Fecha de creación: ${reservation!!.createdAt}")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Inicio: ${reservation!!.startDateTime}")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Fin: ${reservation!!.endDateTime}")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Estado: ${reservation!!.status}")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Organizador: ${reservation!!.ownerUser}")
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            DetailRow(label = "Código de Reserva", value = "#${reservation!!.id}")
+                            DetailRow(label = "Fecha de Creación", value = reservation!!.createdAt)
+                            DetailRow(label = "Hora de Inicio", value = reservation!!.startDateTime)
+                            DetailRow(label = "Hora de Finalización", value = reservation!!.endDateTime)
+                            DetailRow(label = "Organizador", value = reservation!!.ownerUser)
+                            DetailRow(
+                                label = "Estado",
+                                value = reservation!!.status,
+                                isStatus = true,
+                                statusColor = if (reservation!!.status.uppercase() == "CONFIRMED" || reservation!!.status.uppercase() == "CONFIRMADA") {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                }
+                            )
                         }
                     }
 
@@ -116,9 +138,14 @@ fun ReservationDetailScreen(
                         onClick = { onNavigateToMatchResult(reservationId) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
+                            .height(54.dp),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Ver / Registrar Resultados")
+                        Text(
+                            "Ver / Registrar Resultados",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     if (reservation!!.status.uppercase() != "CANCELLED" && reservation!!.status.uppercase() != "CANCELADA") {
@@ -132,20 +159,53 @@ fun ReservationDetailScreen(
                                         Toast.makeText(context, "Reserva cancelada correctamente", Toast.LENGTH_SHORT).show()
                                         onBack()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Error al cancelar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {
-                            Text("Cancelar Reserva")
+                            Text(
+                                "Cancelar Reserva",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun DetailRow(
+    label: String,
+    value: String,
+    isStatus: Boolean = false,
+    statusColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isStatus) statusColor else MaterialTheme.colorScheme.onSurface
+        )
     }
 }

@@ -1,7 +1,9 @@
 package com.pucetec.mrcanchas.ui.screens.match
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -10,7 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pucetec.mrcanchas.models.MatchResult
 import com.pucetec.mrcanchas.models.MatchResultRequest
@@ -36,7 +40,6 @@ fun MatchResultScreen(
     var matchResult by remember { mutableStateOf<MatchResult?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Inputs for ADMIN to create match result
     var teamAName by remember { mutableStateOf("") }
     var teamBName by remember { mutableStateOf("") }
     var teamAScore by remember { mutableStateOf("") }
@@ -50,7 +53,6 @@ fun MatchResultScreen(
                 val api = RetrofitClient.getApiService(context)
                 matchResult = api.getMatchResult(reservationId)
             } catch (e: Exception) {
-                // If not found, it means result hasn't been posted yet
                 matchResult = null
             } finally {
                 isLoading = false
@@ -65,7 +67,12 @@ fun MatchResultScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Resultados del Partido") },
+                title = {
+                    Text(
+                        "Resultados de Partido",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
@@ -82,10 +89,14 @@ fun MatchResultScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             } else if (matchResult != null) {
                 // Display existing results
                 Column(
@@ -97,7 +108,9 @@ fun MatchResultScreen(
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -105,50 +118,85 @@ fun MatchResultScreen(
                         ) {
                             Text(
                                 text = "¡Marcador Final!",
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(text = matchResult!!.teamA, style = MaterialTheme.typography.titleLarge)
-                                    Text(text = matchResult!!.scoreA.toString(), style = MaterialTheme.typography.displayMedium)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = matchResult!!.teamA,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = matchResult!!.scoreA.toString(),
+                                        style = MaterialTheme.typography.displayMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
 
-                                Text(text = "VS", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+                                Text(
+                                    text = "VS",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    fontWeight = FontWeight.Bold
+                                )
 
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(text = matchResult!!.teamB, style = MaterialTheme.typography.titleLarge)
-                                    Text(text = matchResult!!.scoreB.toString(), style = MaterialTheme.typography.displayMedium)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = matchResult!!.teamB,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = matchResult!!.scoreB.toString(),
+                                        style = MaterialTheme.typography.displayMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(32.dp))
+                            HorizontalDivider()
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            if (!matchResult!!.winner.isNullOrBlank()) {
-                                Text(
-                                    text = "Ganador: ${matchResult!!.winner}",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                            val resultMessage = if (!matchResult!!.winner.isNullOrBlank()) {
+                                "Ganador: ${matchResult!!.winner}"
                             } else {
-                                Text(
-                                    text = "¡Empate!",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
+                                "¡Empate!"
                             }
 
-                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Jugado en: ${matchResult!!.playedAt}",
+                                text = resultMessage,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Jugado el: ${matchResult!!.playedAt}",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -163,48 +211,51 @@ fun MatchResultScreen(
                 ) {
                     Text(
                         text = "Registrar Resultados (ADMIN)",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = teamAName,
-                            onValueChange = { teamAName = it },
-                            label = { Text("Nombre Equipo A") },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedTextField(
-                            value = teamAScore,
-                            onValueChange = { teamAScore = it },
-                            label = { Text("Puntaje") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(0.5f)
-                        )
-                    }
+                    OutlinedTextField(
+                        value = teamAName,
+                        onValueChange = { teamAName = it },
+                        label = { Text("Nombre del Equipo A") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = teamAScore,
+                        onValueChange = { teamAScore = it },
+                        label = { Text("Puntaje Equipo A") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = teamBName,
-                            onValueChange = { teamBName = it },
-                            label = { Text("Nombre Equipo B") },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedTextField(
-                            value = teamBScore,
-                            onValueChange = { teamBScore = it },
-                            label = { Text("Puntaje") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(0.5f)
-                        )
-                    }
+                    OutlinedTextField(
+                        value = teamBName,
+                        onValueChange = { teamBName = it },
+                        label = { Text("Nombre del Equipo B") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = teamBScore,
+                        onValueChange = { teamBScore = it },
+                        label = { Text("Puntaje Equipo B") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     if (isSaving) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -247,15 +298,22 @@ fun MatchResultScreen(
                                         Toast.makeText(context, "Resultados registrados con éxito", Toast.LENGTH_SHORT).show()
                                         loadMatchResult()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Error al guardar resultados: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                     } finally {
                                         isSaving = false
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Guardar Resultados")
+                            Text(
+                                "Guardar Resultados",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -268,19 +326,31 @@ fun MatchResultScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "Los resultados de este partido aún no han sido registrados.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Por favor, espera a que el Administrador registre el marcador.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Sin Resultados Registrados",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Los resultados de este partido aún no han sido registrados por el Administrador.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
         }

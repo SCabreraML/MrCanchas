@@ -1,6 +1,7 @@
 package com.pucetec.mrcanchas.ui.screens.courts
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pucetec.mrcanchas.models.Court
 import com.pucetec.mrcanchas.services.RetrofitClient
@@ -35,7 +37,7 @@ fun CourtsScreen(
                 val api = RetrofitClient.getApiService(context)
                 courts = api.getCourts()
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al cargar canchas: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             } finally {
                 isLoading = false
             }
@@ -45,7 +47,12 @@ fun CourtsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Canchas Disponibles") },
+                title = {
+                    Text(
+                        "Canchas Deportivas",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Atrás")
@@ -62,16 +69,26 @@ fun CourtsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (courts.isEmpty()) {
-                Text(
-                    text = "No hay canchas registradas.",
-                    style = MaterialTheme.typography.bodyLarge,
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.Center)
                 )
+            } else if (courts.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No hay canchas registradas.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier
