@@ -141,7 +141,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Main Actions Group
+            // Main Actions
             Text(
                 text = "Acciones Disponibles",
                 style = MaterialTheme.typography.titleMedium,
