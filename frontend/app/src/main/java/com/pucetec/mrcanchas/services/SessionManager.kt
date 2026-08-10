@@ -9,6 +9,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val KEY_TOKEN = "auth_token"
         private const val KEY_IS_ADMIN = "is_admin"
+        private const val KEY_IS_GUEST = "is_guest"
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_USER_EMAIL = "user_email"
         private const val KEY_USER_PHONE = "user_phone"
@@ -30,6 +31,14 @@ class SessionManager(context: Context) {
         return prefs.getBoolean(KEY_IS_ADMIN, false)
     }
 
+    fun saveGuestStatus(isGuest: Boolean) {
+        prefs.edit().putBoolean(KEY_IS_GUEST, isGuest).apply()
+    }
+
+    fun isGuest(): Boolean {
+        return prefs.getBoolean(KEY_IS_GUEST, false)
+    }
+
     fun saveUserProfile(name: String, email: String, phone: String) {
         prefs.edit().apply {
             putString(KEY_USER_NAME, name)
@@ -47,6 +56,6 @@ class SessionManager(context: Context) {
     }
 
     fun isLoggedIn(): Boolean {
-        return !getToken().isNullOrEmpty()
+        return !getToken().isNullOrEmpty() || isGuest()
     }
 }

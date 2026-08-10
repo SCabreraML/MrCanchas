@@ -2,18 +2,19 @@ package com.pucetec.mrcanchas.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Sporty Forest / Emerald Palette for MrCanchas
-val SportGreenPrimary = Color(0xFF1B5E20)       // Deep emerald grass green
-val SportGreenSecondary = Color(0xFF388E3C)     // Lighter grass green
-val SportGreenTertiary = Color(0xFF004D40)      // Deep Teal accent
+// Premium Sports Color Palette
+val SportBluePrimary = Color(0xFF1B75BC)       // Azul Deportivo
+val SportOrangeSecondary = Color(0xFFEE6C24)   // Naranja Zorro
+val SportYellowTertiary = Color(0xFFF9A01B)    // Amarillo Rayo
 
-val LightBackground = Color(0xFFF1F8F5)         // Warm light greenish gray
-val LightSurface = Color(0xFFFFFFFF)            // Clean white
-val LightOnSurface = Color(0xFF1E2320)          // Charcoal dark gray
+val TechnicalLightBackground = Color(0xFFF5F7FA) // Blanco Técnico
+val PureWhiteSurface = Color(0xFFFFFFFF)        // Blanco Puro
+val DarkBlueOnSurface = Color(0xFF141C24)       // Azul Oscuro / Casi Negro
 
-val DarkBackground = Color(0xFF121815)          // Deep charcoal-green background
-val DarkSurface = Color(0xFF1E2522)             // Darker surface
-val DarkOnSurface = Color(0xFFE2EBE5)           // Light gray-green text
+// Dark Mode Fallbacks
+val DarkBackground = Color(0xFF0D1117)          // Tech Dark Background
+val DarkSurface = Color(0xFF161B22)             // Tech Dark Surface
+val DarkOnSurface = Color(0xFFF0F6FC)           // Tech Dark Text
 
 // Status Colors
 val ColorConfirmed = Color(0xFF2E7D32)          // Clean Green

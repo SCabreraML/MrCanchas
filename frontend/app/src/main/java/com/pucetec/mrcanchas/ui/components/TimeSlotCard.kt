@@ -14,6 +14,7 @@ import com.pucetec.mrcanchas.models.TimeSlot
 @Composable
 fun TimeSlotCard(
     timeSlot: TimeSlot,
+    showReserveButton: Boolean,
     onReserveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -60,11 +61,20 @@ fun TimeSlotCard(
             }
 
             if (isAvailable) {
-                Button(
-                    onClick = onReserveClick,
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Reservar")
+                if (showReserveButton) {
+                    Button(
+                        onClick = onReserveClick,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Reservar")
+                    }
+                } else {
+                    Text(
+                        text = "Disponible",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                 }
             } else {
                 Text(

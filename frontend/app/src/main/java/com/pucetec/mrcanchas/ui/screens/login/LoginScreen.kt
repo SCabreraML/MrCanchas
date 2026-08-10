@@ -1,7 +1,6 @@
 package com.pucetec.mrcanchas.ui.screens.login
 
 import android.util.Base64
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,6 +25,10 @@ import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import retrofit2.HttpException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 // Helper function to safely decode JWT payload to a Map
 fun decodeJwtPayload(token: String): Map<String, Any>? {
@@ -63,6 +65,26 @@ fun LoginScreen(
     var usernameInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+
+    // Alert Dialog States
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var alertTitle by remember { mutableStateOf("") }
+    var alertMessage by remember { mutableStateOf("") }
+
+    // Dialog for clean error presenting
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text(alertTitle, fontWeight = FontWeight.Bold) },
+            text = { Text(alertMessage) },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("Entendido")
+                }
+            },
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
 
     Box(
         modifier = modifier
@@ -144,10 +166,25 @@ fun LoginScreen(
                 } else {
                     Button(
                         onClick = {
-                            if (usernameInput.isBlank() || passwordInput.isBlank()) {
-                                Toast.makeText(context, "Por favor ingrese usuario y contraseña", Toast.LENGTH_SHORT).show()
+                            if (usernameInput.isBlank() && passwordInput.isBlank()) {
+                                alertTitle = "Campos Vacíos"
+                                alertMessage = "Por favor, ingresa tanto el usuario como la contraseña para iniciar sesión."
+                                showErrorDialog = true
                                 return@Button
                             }
+                            if (usernameInput.isBlank()) {
+                                alertTitle = "Usuario Requerido"
+                                alertMessage = "El campo de usuario o correo electrónico no puede estar vacío."
+                                showErrorDialog = true
+                                return@Button
+                            }
+                            if (passwordInput.isBlank()) {
+                                alertTitle = "Contraseña Requerida"
+                                alertMessage = "El campo de contraseña no puede estar vacío."
+                                showErrorDialog = true
+                                return@Button
+                            }
+
                             isLoading = true
 
                             scope.launch {
@@ -184,8 +221,10 @@ fun LoginScreen(
                                     }
 
                                     // 3. Save session credentials
+                                    sessionManager.clearSession()
                                     sessionManager.saveToken(accessToken)
                                     sessionManager.saveAdminStatus(isAdmin)
+                                    sessionManager.saveGuestStatus(false)
 
                                     val name = claims?.get("name") as? String
                                         ?: claims?.get("cognito:username") as? String
@@ -205,9 +244,9 @@ fun LoginScreen(
                                             profile.email,
                                             profile.phone
                                         )
-                                        Toast.makeText(context, "¡Bienvenido, ${profile.name}!", Toast.LENGTH_SHORT).show()
                                         onLoginSuccess()
                                     } catch (eGet: Exception) {
+                                        // If get profile fails, try creating it automatically
                                         try {
                                             val newProfile = backendApi.createMyProfile(
                                                 UserProfileRequest(
@@ -221,16 +260,44 @@ fun LoginScreen(
                                                 newProfile.email,
                                                 newProfile.phone
                                             )
-                                            Toast.makeText(context, "Sesión iniciada con éxito!", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         } catch (eCreate: Exception) {
+                                            // Fallback profile details offline if backend is unreachable or similar
                                             sessionManager.saveUserProfile(name, email, phone)
-                                            Toast.makeText(context, "Sesión iniciada (Perfil temporal)", Toast.LENGTH_SHORT).show()
                                             onLoginSuccess()
                                         }
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    alertTitle = "Fallo de Autenticación"
+                                    alertMessage = when (e) {
+                                        is UnknownHostException, is ConnectException -> {
+                                            "No se puede contactar con Cognito. Verifica tu conexión a internet (Wi-Fi o datos móviles)."
+                                        }
+                                        is SocketTimeoutException -> {
+                                            "La solicitud con el servidor de autenticación ha expirado. Reintenta de nuevo."
+                                        }
+                                        is HttpException -> {
+                                            val errorBody = e.response()?.errorBody()?.string() ?: ""
+                                            when {
+                                                errorBody.contains("NotAuthorizedException") -> {
+                                                    "Contraseña o usuario incorrectos. Verifica tus credenciales."
+                                                }
+                                                errorBody.contains("UserNotFoundException") -> {
+                                                    "El usuario ingresado no existe en el sistema."
+                                                }
+                                                errorBody.contains("UserNotConfirmedException") -> {
+                                                    "El usuario aún no ha sido confirmado. Por favor, revisa tu correo electrónico."
+                                                }
+                                                else -> {
+                                                    "Error del servidor de Cognito (Código ${e.code()}). Intente de nuevo."
+                                                }
+                                            }
+                                        }
+                                        else -> {
+                                            e.localizedMessage ?: "Ocurrió un error inesperado al iniciar sesión."
+                                        }
+                                    }
+                                    showErrorDialog = true
                                 } finally {
                                     isLoading = false
                                 }
@@ -245,6 +312,31 @@ fun LoginScreen(
                             text = "Iniciar Sesión",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Public/Guest Login Button
+                    OutlinedButton(
+                        onClick = {
+                            sessionManager.clearSession()
+                            sessionManager.saveGuestStatus(true)
+                            sessionManager.saveUserProfile("Invitado", "Acceso Público", "")
+                            onLoginSuccess()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Entrar como Invitado",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
