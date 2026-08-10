@@ -12,6 +12,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.pucetec.mrcanchas.models.UserProfileRequest
+import com.pucetec.mrcanchas.services.CognitoAuthRequest
+import com.pucetec.mrcanchas.services.CognitoRetrofitClient
 import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
 import kotlinx.coroutines.launch
@@ -26,7 +28,11 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager(context) }
 
-    var tokenInput by remember { mutableStateOf("") }
+    // Constants for our new pool
+    val clientId = "5n067t1f01s9pn6f6a0qbpmamf"
+
+    var usernameInput by remember { mutableStateOf("") }
+    var passwordInput by remember { mutableStateOf("") }
     var nameInput by remember { mutableStateOf("") }
     var emailInput by remember { mutableStateOf("") }
     var phoneInput by remember { mutableStateOf("") }
@@ -49,25 +55,37 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Flujo de Autenticación con Cognito",
+            text = "Login con Cognito (USER_PASSWORD_AUTH)",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
-            value = tokenInput,
-            onValueChange = { tokenInput = it },
-            label = { Text("Pegar Access Token de Cognito") },
+            value = usernameInput,
+            onValueChange = { usernameInput = it },
+            label = { Text("Usuario o Email de Cognito") },
             modifier = Modifier.fillMaxWidth(),
-            maxLines = 3
+            maxLines = 1
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = passwordInput,
+            onValueChange = { passwordInput = it },
+            label = { Text("Contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 1
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Datos de Perfil (Para registrar en el microservicio)",
+            text = "Datos de Perfil (Para sincronizar con Backend)",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.Start)
@@ -102,7 +120,7 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -116,53 +134,76 @@ fun LoginScreen(
             Text("Simular Rol de ADMIN")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (isLoading) {
             CircularProgressIndicator()
         } else {
             Button(
                 onClick = {
-                    if (tokenInput.isBlank() || nameInput.isBlank() || emailInput.isBlank() || phoneInput.isBlank()) {
+                    if (usernameInput.isBlank() || passwordInput.isBlank() || nameInput.isBlank() || emailInput.isBlank() || phoneInput.isBlank()) {
                         Toast.makeText(context, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     isLoading = true
-                    sessionManager.saveToken(tokenInput)
-                    sessionManager.saveAdminStatus(isAdminChecked)
 
                     scope.launch {
                         try {
-                            val api = RetrofitClient.getApiService(context)
-                            val profileResponse = api.createMyProfile(
-                                UserProfileRequest(
-                                    name = nameInput,
-                                    email = emailInput,
-                                    phone = phoneInput
+                            // 1. Authenticate with AWS Cognito using USER_PASSWORD_AUTH
+                            val cognitoApi = CognitoRetrofitClient.getApiService()
+                            val authResponse = cognitoApi.initiateAuth(
+                                CognitoAuthRequest(
+                                    clientId = clientId,
+                                    authParameters = mapOf(
+                                        "USERNAME" to usernameInput,
+                                        "PASSWORD" to passwordInput
+                                    )
                                 )
                             )
-                            sessionManager.saveUserProfile(
-                                profileResponse.name,
-                                profileResponse.email,
-                                profileResponse.phone
-                            )
-                            Toast.makeText(context, "Perfil registrado correctamente!", Toast.LENGTH_SHORT).show()
-                            onLoginSuccess()
-                        } catch (e: Exception) {
-                            // If profile creation failed (maybe already registered or network issue), let's try fetching the profile
-                            try {
-                                val api = RetrofitClient.getApiService(context)
-                                val existingProfile = api.getMyProfile()
-                                sessionManager.saveUserProfile(
-                                    existingProfile.name,
-                                    existingProfile.email,
-                                    existingProfile.phone
-                                )
-                                Toast.makeText(context, "Bienvenido de vuelta, ${existingProfile.name}!", Toast.LENGTH_SHORT).show()
-                                onLoginSuccess()
-                            } catch (e2: Exception) {
-                                Toast.makeText(context, "Error al sincronizar perfil: ${e2.localizedMessage}", Toast.LENGTH_LONG).show()
+
+                            val token = authResponse.authenticationResult?.accessToken
+                            if (token.isNullOrEmpty()) {
+                                throw Exception("No se recibió el token de acceso de Cognito.")
                             }
+
+                            // 2. Save session credentials
+                            sessionManager.saveToken(token)
+                            sessionManager.saveAdminStatus(isAdminChecked)
+
+                            // 3. Register or Sync user profile with our backend
+                            val backendApi = RetrofitClient.getApiService(context)
+                            try {
+                                val profileResponse = backendApi.createMyProfile(
+                                    UserProfileRequest(
+                                        name = nameInput,
+                                        email = emailInput,
+                                        phone = phoneInput
+                                    )
+                                )
+                                sessionManager.saveUserProfile(
+                                    profileResponse.name,
+                                    profileResponse.email,
+                                    profileResponse.phone
+                                )
+                                Toast.makeText(context, "¡Sesión iniciada y perfil registrado!", Toast.LENGTH_SHORT).show()
+                                onLoginSuccess()
+                            } catch (eProfile: Exception) {
+                                // If profile already existed on backend, try to fetch it
+                                try {
+                                    val existingProfile = backendApi.getMyProfile()
+                                    sessionManager.saveUserProfile(
+                                        existingProfile.name,
+                                        existingProfile.email,
+                                        existingProfile.phone
+                                    )
+                                    Toast.makeText(context, "Bienvenido de vuelta, ${existingProfile.name}!", Toast.LENGTH_SHORT).show()
+                                    onLoginSuccess()
+                                } catch (eGet: Exception) {
+                                    Toast.makeText(context, "Error al sincronizar perfil: ${eGet.localizedMessage}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Error de Autenticación: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                         } finally {
                             isLoading = false
                         }
@@ -173,7 +214,7 @@ fun LoginScreen(
                     .height(50.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Registrar e Iniciar Sesión")
+                Text("Iniciar Sesión")
             }
         }
     }

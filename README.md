@@ -87,7 +87,12 @@ Has configurado exitosamente un nuevo User Pool para la aplicación móvil con l
 - **Roles**: `USER` y `ADMIN` (Grupos en Cognito)
 
 ### Configuración en la Aplicación Móvil
-El `App Client ID` provisto (`5n067t1f01s9pn6f6a0qbpmamf`) debe utilizarse en tu flujo de autenticación de Android. Cuando los usuarios inicien sesión usando el Hosted UI con el dominio `https://us-east-17mxhfj2lt.auth.us-east-1.amazoncognito.com`, obtendrán el `access_token` JWT. Pega este token en el Login de la aplicación móvil de MrCanchas para autenticarte.
+La aplicación móvil está configurada para realizar la autenticación mediante **usuario y contraseña** directamente desde la interfaz móvil de la aplicación (flujo `USER_PASSWORD_AUTH`).
+
+1. Se utiliza el App Client ID (`5n067t1f01s9pn6f6a0qbpmamf`) para comunicarse directamente con la API de Cognito: `https://cognito-idp.us-east-1.amazonaws.com`.
+2. Al ingresar el usuario y contraseña, la aplicación ejecuta una solicitud segura `InitiateAuth` hacia Cognito.
+3. Se extrae el `AccessToken` JWT que nos devuelve de forma segura y se almacena en SharedPreferences.
+4. El token es utilizado para crear o sincronizar automáticamente el perfil de usuario contra el backend de MrCanchas.
 
 ---
 
