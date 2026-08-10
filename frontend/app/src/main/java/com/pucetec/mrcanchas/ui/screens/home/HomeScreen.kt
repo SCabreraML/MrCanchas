@@ -38,7 +38,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "MrCanchas App",
+                        "MrCanchas",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
