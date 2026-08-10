@@ -78,20 +78,28 @@ Dado que los microservicios están dockerizados en la máquina local, el emulado
 
 ---
 
-## 4. Configuración en el Backend (Microservicios)
+## 4. Configuración de Tu Nuevo Pool de Cognito (Móvil)
 
-Para que los microservicios de Spring Boot validen correctamente el Token JWT firmado por tu nuevo pool de Cognito, debes actualizar las variables de entorno en el archivo `docker-compose.yml`.
+Has configurado exitosamente un nuevo User Pool para la aplicación móvil con los siguientes datos:
+- **Dominio de Autenticación**: `https://us-east-17mxhfj2lt.auth.us-east-1.amazoncognito.com`
+- **ID de Cliente (App Client ID)**: `5n067t1f01s9pn6f6a0qbpmamf`
+- **Región**: `us-east-1`
+- **Roles**: `USER` y `ADMIN` (Grupos en Cognito)
 
-Asegúrate de configurar la variable `COGNITO_ISSUER_URI`:
+### Configuración en la Aplicación Móvil
+El `App Client ID` provisto (`5n067t1f01s9pn6f6a0qbpmamf`) debe utilizarse en tu flujo de autenticación de Android. Cuando los usuarios inicien sesión usando el Hosted UI con el dominio `https://us-east-17mxhfj2lt.auth.us-east-1.amazoncognito.com`, obtendrán el `access_token` JWT. Pega este token en el Login de la aplicación móvil de MrCanchas para autenticarte.
+
+---
+
+## 5. Configuración en el Backend (Microservicios)
+
+Para que los microservicios de Spring Boot (tanto `users` como `courts_service`) validen correctamente los tokens firmados por tu nuevo pool de Cognito, debes configurar la variable de entorno `COGNITO_ISSUER_URI` en tu archivo `docker-compose.yml` o en el entorno de ejecución:
 
 ```yaml
 environment:
-  COGNITO_ISSUER_URI: "https://cognito-idp.<TU_REGION_AWS>.amazonaws.com/<ID_DE_TU_USER_POOL>"
+  COGNITO_ISSUER_URI: "https://cognito-idp.us-east-1.amazonaws.com/<ID_DE_TU_USER_POOL_DE_COGNITO>"
 ```
 
-Por ejemplo:
-```yaml
-COGNITO_ISSUER_URI: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123"
-```
+*(Nota: Puedes obtener el **User Pool ID** desde la consola de AWS Cognito, tiene un formato similar a `us-east-1_xxxxxxxxx`).*
 
-Esto permite que Spring Security descargue automáticamente las claves públicas de firmas de tokens (JWKS) directamente de AWS para validar la autenticidad e integridad de los tokens enviados por la aplicación móvil.
+Esto permite que Spring Security descargue automáticamente las claves públicas de firma de tokens (JWKS) desde la dirección de tu nuevo pool de Cognito para validar la autenticidad de los tokens enviados desde la aplicación móvil.
