@@ -35,7 +35,6 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            // Standard small TopAppBar to keep it slim and compact
             TopAppBar(
                 title = {
                     Text(
@@ -57,7 +56,7 @@ fun HomeScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
-                windowInsets = WindowInsets(0.dp) // Keeps app bar compact
+                windowInsets = WindowInsets(0.dp)
             )
         },
         modifier = modifier
@@ -80,7 +79,7 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // User Info Header Card (Improved: No avatar circle, compact card style)
+            // User Info Header Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -102,7 +101,11 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-
+                        Text(
+                            text = userEmail,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     if (isAdmin) {
@@ -135,7 +138,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sports courts button (Styled with Primary Color - SportBluePrimary)
+            // Sports courts button (Visible to both USER and ADMIN)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -172,41 +175,43 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Mis Reservas is ONLY visible to USER role (Admins cannot perform /me reservations queries)
+            if (!isAdmin) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Reservations button (Styled with Secondary Color - SportOrangeSecondary CTA)
-            Button(
-                onClick = onNavigateToReservations,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Reservas",
-                        modifier = Modifier.size(24.dp)
+                Button(
+                    onClick = onNavigateToReservations,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = "Mis Reservas",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Reservas",
+                            modifier = Modifier.size(24.dp)
                         )
-                        Text(
-                            text = "Consulta el estado de tus reservas",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
-                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = "Mis Reservas",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Consulta el estado de tus reservas",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                 }
             }

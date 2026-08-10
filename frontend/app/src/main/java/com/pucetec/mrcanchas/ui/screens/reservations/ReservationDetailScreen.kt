@@ -30,6 +30,8 @@ fun ReservationDetailScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val sessionManager = remember { SessionManager(context) }
+    val isAdmin = sessionManager.isAdmin()
+
     var reservation by remember { mutableStateOf<Reservation?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -151,7 +153,8 @@ fun ReservationDetailScreen(
                         )
                     }
 
-                    if (reservation!!.status.uppercase() != "CANCELLED" && reservation!!.status.uppercase() != "CANCELADA") {
+                    // Hide cancel reservation button for admins (it's restricted to USER in controller anyway)
+                    if (!isAdmin && reservation!!.status.uppercase() != "CANCELLED" && reservation!!.status.uppercase() != "CANCELADA") {
                         Spacer(modifier = Modifier.height(16.dp))
                         OutlinedButton(
                             onClick = {

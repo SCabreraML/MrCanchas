@@ -20,6 +20,7 @@ import com.pucetec.mrcanchas.models.Court
 import com.pucetec.mrcanchas.models.ReservationRequest
 import com.pucetec.mrcanchas.models.TimeSlot
 import com.pucetec.mrcanchas.services.RetrofitClient
+import com.pucetec.mrcanchas.services.SessionManager
 import com.pucetec.mrcanchas.ui.components.TimeSlotCard
 import kotlinx.coroutines.launch
 
@@ -33,6 +34,9 @@ fun CourtDetailScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val sessionManager = remember { SessionManager(context) }
+    val isAdmin = sessionManager.isAdmin()
+
     var court by remember { mutableStateOf<Court?>(null) }
     var timeSlots by remember { mutableStateOf<List<TimeSlot>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -164,6 +168,7 @@ fun CourtDetailScreen(
                             items(timeSlots) { slot ->
                                 TimeSlotCard(
                                     timeSlot = slot,
+                                    showReserveButton = !isAdmin, // Only show reserve button to non-admins (users)
                                     onReserveClick = {
                                         scope.launch {
                                             try {
