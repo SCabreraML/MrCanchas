@@ -114,11 +114,7 @@ fun HomeScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = userEmail,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
 
                     if (isAdmin) {
                         Spacer(modifier = Modifier.height(12.dp))
