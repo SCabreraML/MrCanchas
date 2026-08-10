@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.models.Reservation
 import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.ui.components.ReservationCard
@@ -50,6 +51,7 @@ fun ReservationsScreen(
                 title = {
                     Text(
                         "Mis Reservas",
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -61,7 +63,8 @@ fun ReservationsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                windowInsets = WindowInsets(0.dp)
             )
         },
         modifier = modifier

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.models.Reservation
 import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
@@ -56,6 +57,7 @@ fun ReservationDetailScreen(
                 title = {
                     Text(
                         "Reserva #${reservationId}",
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -67,7 +69,8 @@ fun ReservationDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                windowInsets = WindowInsets(0.dp)
             )
         },
         modifier = modifier
@@ -99,14 +102,14 @@ fun ReservationDetailScreen(
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Column(modifier = Modifier.padding(24.dp)) {
                             Text(
                                 text = "Información General",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )

@@ -12,10 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.services.SessionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,11 +35,12 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
+            // Standard small TopAppBar to keep it slim and compact
             TopAppBar(
                 title = {
                     Text(
-                        "MrCanchas App",
-                        style = MaterialTheme.typography.titleLarge,
+                        "MrCanchas",
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -55,7 +56,8 @@ fun HomeScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                windowInsets = WindowInsets(0.dp) // Keeps app bar compact
             )
         },
         modifier = modifier
@@ -67,71 +69,56 @@ fun HomeScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
                             MaterialTheme.colorScheme.background
                         )
                     )
                 )
-                .padding(24.dp),
+                .padding(20.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // User Info Header Card
+            // User Info Header Card (Improved: No avatar circle, compact card style)
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(32.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = userName.take(1).uppercase(),
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            text = "¡Hola, $userName!",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = userEmail,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "¡Hola, $userName!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = userEmail,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
                     if (isAdmin) {
-                        Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(20.dp),
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(
-                                text = "ADMINISTRADOR",
-                                style = MaterialTheme.typography.labelMedium,
+                                text = "ADMIN",
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -139,7 +126,7 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Main Actions Group
             Text(
@@ -152,7 +139,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sports courts button
+            // Sports courts button (Styled with Primary Color - SportBluePrimary)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -171,7 +158,7 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Canchas",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
@@ -191,7 +178,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Reservations button
+            // Reservations button (Styled with Secondary Color - SportOrangeSecondary CTA)
             Button(
                 onClick = onNavigateToReservations,
                 modifier = Modifier
@@ -210,7 +197,7 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = "Reservas",
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
