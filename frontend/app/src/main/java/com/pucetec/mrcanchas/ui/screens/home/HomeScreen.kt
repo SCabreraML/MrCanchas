@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
@@ -12,15 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.services.SessionManager
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,17 +86,17 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // User Info Header Card
+            // User Info Header Card Corregido
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -117,15 +115,7 @@ fun HomeScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "¡Hola, $userName!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     if (isAdmin) {
                         Surface(
@@ -142,13 +132,13 @@ fun HomeScreen(
                         }
                     } else if (isGuest) {
                         Surface(
-                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                            color = Color(0xFFD35400), // Color naranja destacado para GUEST
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(
                                 text = "GUEST",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.secondary,
+                                color = Color.White,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                 fontWeight = FontWeight.Bold
                             )
@@ -170,7 +160,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Ver canchas (Visible para todos: GUEST, USER, ADMIN)
+            // Ver canchas (Con contraste de texto corregido a Blanco y Azul Claro)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -178,7 +168,8 @@ fun HomeScreen(
                     .height(64.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Row(
@@ -189,19 +180,21 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Canchas",
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
                             text = "Ver canchas",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
                             text = "Explora las canchas deportivas",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                         )
                     }
                 }
@@ -209,7 +202,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // NUEVO — Ver horarios (Visible para todos: GUEST, USER, ADMIN)
+            // Ver horarios
             Button(
                 onClick = onNavigateToTimeSlots,
                 modifier = Modifier
@@ -217,7 +210,8 @@ fun HomeScreen(
                     .height(64.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Row(
@@ -228,24 +222,27 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = "Horarios",
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
                             text = "Ver horarios",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
                             text = "Consulta los horarios por cancha",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                         )
                     }
                 }
             }
-            // NUEVO — Registrar resultado (solo ADMIN)
+
+            // Registrar resultado (solo ADMIN)
             if (isAdmin) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -255,7 +252,8 @@ fun HomeScreen(
                         .height(64.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
                     )
                 ) {
                     Row(
@@ -266,25 +264,28 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Resultados",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onTertiary
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = "Registrar resultado",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onTertiary
                             )
                             Text(
                                 text = "Ingresa el número de reserva",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.85f)
                             )
                         }
                     }
                 }
             }
-            // Mis Reservas is ONLY visible to USER role (Admins and Guests do not have a /me reservations query permission)
+
+            // Mis Reservas (solo USER)
             if (!isAdmin && !isGuest) {
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -295,7 +296,8 @@ fun HomeScreen(
                         .height(64.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
                     )
                 ) {
                     Row(
@@ -306,25 +308,28 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = "Reservas",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSecondary
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = "Mis Reservas",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondary
                             )
                             Text(
                                 text = "Consulta el estado de tus reservas",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.85f)
                             )
                         }
                     }
                 }
             }
-            // NUEVO — diálogo para ingresar el número de reserva
+
+            // Diálogo de registrar resultado
             if (showResultDialog) {
                 AlertDialog(
                     onDismissRequest = { showResultDialog = false },
