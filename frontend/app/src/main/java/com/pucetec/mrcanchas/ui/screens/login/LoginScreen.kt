@@ -222,7 +222,7 @@ fun LoginScreen(
 
                                     // 3. Save session credentials
                                     sessionManager.clearSession()
-                                    sessionManager.saveToken(idToken ?: accessToken)
+                                    sessionManager.saveToken(accessToken)
                                     sessionManager.saveAdminStatus(isAdmin)
                                     sessionManager.saveGuestStatus(false)
 

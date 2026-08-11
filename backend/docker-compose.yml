@@ -70,7 +70,7 @@ services:
       SPRING_DATASOURCE_USERNAME: users_user
       SPRING_DATASOURCE_PASSWORD: users_password
 
-      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/TU_USER_POOL_ID
+      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7MxHFj2lT    
     expose:
       - "8686"
     depends_on:
@@ -87,7 +87,7 @@ services:
       SPRING_DATASOURCE_USERNAME: courts_user
       SPRING_DATASOURCE_PASSWORD: courts_password
 
-      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/TU_USER_POOL_ID
+      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7MxHFj2lT
     expose:
       - "8989"
     depends_on:
