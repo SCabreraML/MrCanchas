@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 data class MatchResultResponse(
     val id: Long,
     val reservationId: Long,
+    val status: String,
     val teamA: String,
     val teamB: String,
     val scoreA: Int,

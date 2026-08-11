@@ -22,6 +22,7 @@ import com.pucetec.mrcanchas.services.SessionManager
 @Composable
 fun HomeScreen(
     onNavigateToCourts: () -> Unit,
+    onNavigateToTimeSlots: () -> Unit,   // NUEVO
     onNavigateToReservations: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
@@ -162,7 +163,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Sports courts button (Visible to everyone: GUEST, USER, ADMIN)
+            // Ver canchas (Visible para todos: GUEST, USER, ADMIN)
             Button(
                 onClick = onNavigateToCourts,
                 modifier = Modifier
@@ -186,12 +187,51 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Ver Canchas y Horarios",
+                            text = "Ver canchas",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Encuentra y consulta horarios",
+                            text = "Explora las canchas deportivas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // NUEVO — Ver horarios (Visible para todos: GUEST, USER, ADMIN)
+            Button(
+                onClick = onNavigateToTimeSlots,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Horarios",
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Ver horarios",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Consulta los horarios por cancha",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                         )

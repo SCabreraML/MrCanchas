@@ -1,11 +1,11 @@
 package com.pucetec.mrcanchas.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete // NUEVO
+import androidx.compose.material.icons.filled.Edit   // NUEVO
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +19,9 @@ import com.pucetec.mrcanchas.models.Court
 fun CourtCard(
     court: Court,
     onClick: () -> Unit,
+    isAdmin: Boolean = false,        // NUEVO
+    onEdit: () -> Unit = {},         // NUEVO
+    onDelete: () -> Unit = {},       // NUEVO
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -94,6 +97,37 @@ fun CourtCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+
+            // NUEVO — acciones de admin, solo visibles para ADMIN
+            if (isAdmin) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Editar")
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    TextButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    }
+                }
             }
         }
     }

@@ -24,6 +24,7 @@ import com.pucetec.mrcanchas.ui.screens.match.MatchResultScreen
 import com.pucetec.mrcanchas.ui.screens.reservations.ReservationDetailScreen
 import com.pucetec.mrcanchas.ui.screens.reservations.ReservationsScreen
 import com.pucetec.mrcanchas.ui.theme.MrCanchasTheme
+import com.pucetec.mrcanchas.ui.screens.timeslots.TimeSlotsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +64,7 @@ fun MainAppNavHost() {
             composable("home") {
                 HomeScreen(
                     onNavigateToCourts = { navController.navigate("courts") },
+                    onNavigateToTimeSlots = { navController.navigate("time-slots") }, // NUEVO
                     onNavigateToReservations = { navController.navigate("reservations") },
                     onLogout = {
                         sessionManager.clearSession()
@@ -77,6 +79,12 @@ fun MainAppNavHost() {
                     onNavigateToDetail = { courtId ->
                         navController.navigate("courts/$courtId")
                     },
+                    onBack = { navController.popBackStack() }
+
+                )
+            }
+            composable("time-slots") { // NUEVO
+                TimeSlotsScreen(
                     onBack = { navController.popBackStack() }
                 )
             }
