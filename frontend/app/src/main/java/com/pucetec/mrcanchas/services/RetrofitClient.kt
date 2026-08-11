@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     // Standard URL when running on Android emulator connecting to host reverse proxy on port 8888
-    private const val BASE_URL = "http://10.0.2.2:8888/"
+    private const val BASE_URL = "http://192.168.100.7:8888/"
 
     private var apiService: ApiService? = null
 
@@ -21,7 +21,6 @@ object RetrofitClient {
             val sharedPreferences = context.getSharedPreferences("mr_canchas_prefs", Context.MODE_PRIVATE)
 
             val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
                 .addInterceptor { chain ->
                     val token = sharedPreferences.getString("auth_token", null)
                     val requestBuilder = chain.request().newBuilder()
@@ -30,6 +29,7 @@ object RetrofitClient {
                     }
                     chain.proceed(requestBuilder.build())
                 }
+                .addInterceptor(loggingInterceptor) // ← el logger va DESPUÉS
                 .build()
 
             val retrofit = Retrofit.Builder()

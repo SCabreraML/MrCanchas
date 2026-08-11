@@ -16,7 +16,7 @@ class SessionManager(context: Context) {
     }
 
     fun saveToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token).apply()
+        prefs.edit().putString(KEY_TOKEN, token).commit()  // ← usa commit() en lugar de apply()
     }
 
     fun getToken(): String? {
