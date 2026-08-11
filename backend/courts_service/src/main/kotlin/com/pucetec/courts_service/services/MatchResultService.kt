@@ -24,44 +24,48 @@ class MatchResultService(
 ) {
 
     @Transactional
-fun create(reservationId: Long, request: MatchResultRequest): MatchResultResponse {
-    val reservation = reservationRepository.findById(reservationId)
-        .orElseThrow { ReservationNotFoundException(reservationId) }
+    fun create(reservationId: Long, request: MatchResultRequest): MatchResultResponse {
+        val reservation = reservationRepository.findById(reservationId)
+            .orElseThrow { ReservationNotFoundException(reservationId) }
 
-    matchResultRepository.findByReservationId(reservationId)?.let {
-        throw MatchResultAlreadyExistsException(reservationId)
-    }
-
-    // Validar que los nombres de los equipos sean diferentes
-    if (request.teamA.trim().lowercase() == request.teamB.trim().lowercase()) {
-        throw InvalidTeamsException("The two teams cannot have the same name")
-    }
-
-    // Validar winner (si se envía)
-    if (!request.winner.isNullOrBlank()) {
-        val teamNames = listOf(request.teamA, request.teamB)
-        if (request.winner !in teamNames) {
-            throw InvalidWinnerException("Winner must be one of the two teams: $teamNames")
+        matchResultRepository.findByReservationId(reservationId)?.let {
+            throw MatchResultAlreadyExistsException(reservationId)
         }
+
+        // Ahora los equipos vienen en una lista (validada a exactamente 2 en el DTO)
+        val teamA = request.teams[0]
+        val teamB = request.teams[1]
+
+        // Validar que los nombres de los equipos sean diferentes
+        if (teamA.name.trim().lowercase() == teamB.name.trim().lowercase()) {
+            throw InvalidTeamsException("The two teams cannot have the same name")
+        }
+
+        // Validar winner (si se envía)
+        if (!request.winner.isNullOrBlank()) {
+            val teamNames = listOf(teamA.name, teamB.name)
+            if (request.winner !in teamNames) {
+                throw InvalidWinnerException("Winner must be one of the two teams: $teamNames")
+            }
+        }
+
+        val matchResult = MatchResult(
+            reservation = reservation,
+            status = request.status,
+            teamA = teamA.name,
+            scoreA = teamA.score,
+            teamB = teamB.name,
+            scoreB = teamB.score,
+            winner = request.winner,
+            playedAt = request.playedAt ?: LocalDateTime.now()
+        )
+
+        reservation.status = Reservation.Status.COMPLETED
+        reservationRepository.save(reservation)
+
+        val saved = matchResultRepository.save(matchResult)
+        return matchResultMapper.toResponse(saved)
     }
-
-    val matchResult = MatchResult(
-        reservation = reservation,
-        status = MatchResult.MatchStatus.FINISHED,   // al registrar resultado asumimos que terminó
-        teamA = request.teamA,
-        scoreA = request.scoreA,
-        teamB = request.teamB,
-        scoreB = request.scoreB,
-        winner = request.winner,
-        playedAt = request.playedAt
-    )
-
-    reservation.status = Reservation.Status.COMPLETED
-    reservationRepository.save(reservation)
-
-    val saved = matchResultRepository.save(matchResult)
-    return matchResultMapper.toResponse(saved)
-}
 
     fun findByReservation(reservationId: Long): MatchResultResponse {
         val result = matchResultRepository.findByReservationId(reservationId)

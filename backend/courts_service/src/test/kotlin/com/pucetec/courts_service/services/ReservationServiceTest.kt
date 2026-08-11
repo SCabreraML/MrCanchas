@@ -5,7 +5,10 @@ import com.pucetec.courts_service.dto.response.ReservationResponse
 import com.pucetec.courts_service.entities.Court
 import com.pucetec.courts_service.entities.Reservation
 import com.pucetec.courts_service.entities.TimeSlot
+import com.pucetec.courts_service.exceptions.InvalidReservationDurationException
+import com.pucetec.courts_service.exceptions.ReservationInThePastException
 import com.pucetec.courts_service.exceptions.ReservationNotFoundException
+import com.pucetec.courts_service.exceptions.ReservationOutsideAllowedHoursException
 import com.pucetec.courts_service.exceptions.TimeSlotAlreadyReservedException
 import com.pucetec.courts_service.exceptions.TimeSlotNotFoundException
 import com.pucetec.courts_service.exceptions.UnauthorizedReservationException
@@ -49,15 +52,12 @@ class ReservationServiceTest {
 
     private val currentUser = "user-sub-123"
 
-    // Helper to use Mockito any() with Kotlin non-null types.
     private fun <T> anyNonNull(): T {
         Mockito.any<T>()
         @Suppress("UNCHECKED_CAST")
         return null as T
     }
 
-    // Sets a fake authenticated user in the security context before each test,
-    // so currentUsername() returns "user-sub-123".
     @BeforeEach
     fun setUpSecurityContext() {
         val auth = UsernamePasswordAuthenticationToken(currentUser, null, emptyList())
@@ -72,26 +72,33 @@ class ReservationServiceTest {
     private fun sampleCourt() =
         Court(id = 1L, name = "Court A", sport = "Tennis", location = "Zone 1", available = true)
 
-    private fun sampleTimeSlot(id: Long = 10L, status: TimeSlot.Status = TimeSlot.Status.AVAILABLE) =
-        TimeSlot(
-            id = id,
-            court = sampleCourt(),
-            date = LocalDate.of(2026, 8, 10),
-            startTime = LocalTime.of(9, 0),
-            endTime = LocalTime.of(10, 0),
-            status = status
-        )
+    private fun sampleTimeSlot(
+        id: Long = 10L,
+        date: LocalDate = LocalDate.of(2026, 12, 10),
+        startTime: LocalTime = LocalTime.of(9, 0),
+        endTime: LocalTime = LocalTime.of(10, 0),
+        status: TimeSlot.Status = TimeSlot.Status.AVAILABLE
+    ) = TimeSlot(
+        id = id,
+        court = sampleCourt(),
+        date = date,
+        startTime = startTime,
+        endTime = endTime,
+        status = status
+    )
 
     private fun sampleReservation(
         id: Long = 100L,
         owner: String = currentUser,
-        status: Reservation.Status = Reservation.Status.CONFIRMED
+        status: Reservation.Status = Reservation.Status.CONFIRMED,
+        timeSlot: TimeSlot = sampleTimeSlot()
     ) = Reservation(
         id = id,
-        timeSlot = sampleTimeSlot(),
+        timeSlot = timeSlot,
         ownerUser = owner,
-        status = status,
-        createdAt = LocalDateTime.of(2026, 8, 5, 12, 0)
+        startDateTime = LocalDateTime.of(timeSlot.date, timeSlot.startTime),
+        endDateTime = LocalDateTime.of(timeSlot.date, timeSlot.endTime),
+        status = status
     )
 
     private fun sampleResponse(id: Long = 100L) =
@@ -100,14 +107,14 @@ class ReservationServiceTest {
             timeSlotId = 10L,
             ownerUser = currentUser,
             status = "CONFIRMED",
-            createdAt = LocalDateTime.of(2026, 8, 5, 12, 0)
+            createdAt = LocalDateTime.of(2026, 12, 10, 9, 0)
         )
 
     @Test
-    fun `create makes a reservation when the time slot is free`() {
+    fun `create makes a reservation when the time slot is free and valid`() {
         val request = ReservationRequest(timeSlotId = 10L)
         val timeSlot = sampleTimeSlot()
-        val saved = sampleReservation()
+        val saved = sampleReservation(timeSlot = timeSlot)
 
         `when`(timeSlotRepository.findById(10L)).thenReturn(Optional.of(timeSlot))
         `when`(reservationRepository.existsByTimeSlotIdAndStatus(10L, Reservation.Status.CONFIRMED))
@@ -119,6 +126,7 @@ class ReservationServiceTest {
 
         assertEquals(100L, result.id)
         assertEquals(TimeSlot.Status.RESERVED, timeSlot.status)
+        verify(timeSlotRepository).save(timeSlot)
     }
 
     @Test
@@ -127,6 +135,31 @@ class ReservationServiceTest {
         `when`(timeSlotRepository.findById(99L)).thenReturn(Optional.empty())
 
         assertThrows<TimeSlotNotFoundException> {
+            reservationService.create(request)
+        }
+    }
+
+    @Test
+    fun `create throws ReservationInThePastException when start time is in the past`() {
+        val request = ReservationRequest(timeSlotId = 10L)
+        val pastSlot = sampleTimeSlot(date = LocalDate.of(2020, 1, 1))
+
+        `when`(timeSlotRepository.findById(10L)).thenReturn(Optional.of(pastSlot))
+
+        assertThrows<ReservationInThePastException> {
+            reservationService.create(request)
+        }
+    }
+
+    @Test
+    fun `create throws ReservationOutsideAllowedHoursException when hours are outside allowed limit`() {
+        val request = ReservationRequest(timeSlotId = 10L)
+        // Inicio a las 06:00 (permitido solo a partir de las 07:00)
+        val earlySlot = sampleTimeSlot(startTime = LocalTime.of(6, 0), endTime = LocalTime.of(8, 0))
+
+        `when`(timeSlotRepository.findById(10L)).thenReturn(Optional.of(earlySlot))
+
+        assertThrows<ReservationOutsideAllowedHoursException> {
             reservationService.create(request)
         }
     }
@@ -187,6 +220,7 @@ class ReservationServiceTest {
         assertEquals(Reservation.Status.CANCELLED, reservation.status)
         assertEquals(TimeSlot.Status.AVAILABLE, reservation.timeSlot.status)
         verify(reservationRepository).save(reservation)
+        verify(timeSlotRepository).save(reservation.timeSlot)
     }
 
     @Test

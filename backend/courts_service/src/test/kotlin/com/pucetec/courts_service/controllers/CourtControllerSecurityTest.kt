@@ -24,7 +24,6 @@ class CourtControllerSecurityTest {
     @Autowired
     private lateinit var springSecurityFilterChain: FilterChainProxy
 
-    // Evita que Spring intente descargar las llaves de Cognito por red.
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
 
@@ -43,7 +42,7 @@ class CourtControllerSecurityTest {
     fun `POST courts without token returns 401`() {
         mockMvc = buildMockMvc()
         mockMvc.perform(
-            post("/api/courts")
+            post("/courts/api/courts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(courtJson)
         ).andExpect(status().isUnauthorized)
@@ -53,7 +52,7 @@ class CourtControllerSecurityTest {
     fun `POST courts with USER role returns 403`() {
         mockMvc = buildMockMvc()
         mockMvc.perform(
-            post("/api/courts")
+            post("/courts/api/courts")
                 .with(jwt().authorities(SimpleGrantedAuthority("ROLE_USER")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(courtJson)

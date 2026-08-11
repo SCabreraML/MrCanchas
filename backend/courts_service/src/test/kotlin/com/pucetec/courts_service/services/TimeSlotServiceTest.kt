@@ -5,6 +5,7 @@ import com.pucetec.courts_service.dto.response.TimeSlotResponse
 import com.pucetec.courts_service.entities.Court
 import com.pucetec.courts_service.entities.TimeSlot
 import com.pucetec.courts_service.exceptions.CourtNotFoundException
+import com.pucetec.courts_service.exceptions.DuplicateTimeSlotException
 import com.pucetec.courts_service.exceptions.TimeSlotNotFoundException
 import com.pucetec.courts_service.mappers.TimeSlotMapper
 import com.pucetec.courts_service.repositories.CourtRepository
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -38,12 +38,6 @@ class TimeSlotServiceTest {
 
     @InjectMocks
     private lateinit var timeSlotService: TimeSlotService
-
-    private fun <T> anyNonNull(): T {
-        Mockito.any<T>()
-        @Suppress("UNCHECKED_CAST")
-        return null as T
-    }
 
     private fun sampleCourt() =
         Court(id = 1L, name = "Court A", sport = "Tennis", location = "Zone 1", available = true)
@@ -135,6 +129,11 @@ class TimeSlotServiceTest {
         val request = sampleRequest()
 
         `when`(courtRepository.findById(1L)).thenReturn(Optional.of(court))
+        `when`(
+            timeSlotRepository.existsByCourtIdAndDateAndStartTimeAndEndTime(
+                1L, request.date, request.startTime, request.endTime
+            )
+        ).thenReturn(false)
         `when`(timeSlotMapper.toEntity(request, court)).thenReturn(slot)
         `when`(timeSlotRepository.save(slot)).thenReturn(slot)
         `when`(timeSlotMapper.toResponse(slot)).thenReturn(sampleResponse())
@@ -142,6 +141,23 @@ class TimeSlotServiceTest {
         val result = timeSlotService.create(request)
 
         assertEquals(10L, result.id)
+    }
+
+    @Test
+    fun `create throws DuplicateTimeSlotException when slot already exists`() {
+        val court = sampleCourt()
+        val request = sampleRequest()
+
+        `when`(courtRepository.findById(1L)).thenReturn(Optional.of(court))
+        `when`(
+            timeSlotRepository.existsByCourtIdAndDateAndStartTimeAndEndTime(
+                1L, request.date, request.startTime, request.endTime
+            )
+        ).thenReturn(true)
+
+        assertThrows<DuplicateTimeSlotException> {
+            timeSlotService.create(request)
+        }
     }
 
     @Test

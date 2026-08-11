@@ -39,6 +39,9 @@ fun ReservationsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    var reservationToCancel by remember { mutableStateOf<Reservation?>(null) }
+    var isCancelling by remember { mutableStateOf(false) }
+
     fun loadReservations() {
         isLoading = true
         errorMessage = null
@@ -60,6 +63,33 @@ fun ReservationsScreen(
                 }
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    fun submitCancel(reservation: Reservation) {
+        isCancelling = true
+        scope.launch {
+            try {
+                val response = RetrofitClient.getApiService(context).cancelReservation(reservation.id)
+                if (response.isSuccessful) {
+                    reservationToCancel = null
+                    Toast.makeText(context, "Reserva cancelada", Toast.LENGTH_SHORT).show()
+                    loadReservations()
+                } else {
+                    val msg = when (response.code()) {
+                        401 -> "Tu sesión expiró. Vuelve a iniciar sesión."
+                        403 -> "No tienes permiso para cancelar esta reserva."
+                        404 -> "La reserva ya no existe."
+                        409 -> "Esta reserva no se puede cancelar."
+                        else -> "No se pudo cancelar la reserva (código ${response.code()})."
+                    }
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, e.localizedMessage ?: "Error de red al cancelar.", Toast.LENGTH_LONG).show()
+            } finally {
+                isCancelling = false
             }
         }
     }
@@ -166,11 +196,38 @@ fun ReservationsScreen(
                     items(reservations) { reservation ->
                         ReservationCard(
                             reservation = reservation,
-                            onClick = { onNavigateToDetail(reservation.id) }
+                            onClick = { onNavigateToDetail(reservation.id) },
+                            onCancel = { reservationToCancel = reservation }
                         )
                     }
                 }
             }
         }
+    }
+
+    reservationToCancel?.let { reservation ->
+        AlertDialog(
+            onDismissRequest = { if (!isCancelling) reservationToCancel = null },
+            title = { Text("Cancelar reserva") },
+            text = { Text("¿Seguro que deseas cancelar la reserva #${reservation.id}?") },
+            confirmButton = {
+                Button(
+                    enabled = !isCancelling,
+                    onClick = { submitCancel(reservation) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    if (isCancelling) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onError)
+                    } else {
+                        Text("Sí, cancelar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reservationToCancel = null }, enabled = !isCancelling) {
+                    Text("No")
+                }
+            }
+        )
     }
 }

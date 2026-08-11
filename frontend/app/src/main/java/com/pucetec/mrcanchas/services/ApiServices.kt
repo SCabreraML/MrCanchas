@@ -4,6 +4,7 @@ import com.pucetec.mrcanchas.models.*
 import retrofit2.http.*
 import retrofit2.Response
 
+
 interface ApiService {
 
     // ---------- CANCHAS ----------
@@ -57,7 +58,7 @@ interface ApiService {
     @DELETE("courts/api/time-slots/{id}")
     suspend fun deleteTimeSlot(
         @Path("id") id: Long
-    )
+    ): Response<Unit>
 
     // ---------- RESERVAS ----------
     @POST("courts/api/reservations")
@@ -76,7 +77,7 @@ interface ApiService {
     @DELETE("courts/api/reservations/{id}")
     suspend fun cancelReservation(
         @Path("id") id: Long
-    )
+    ): Response<Unit>
 
     // ---------- RESULTADOS ----------
     @GET("courts/api/match-results/reservation/{reservationId}")

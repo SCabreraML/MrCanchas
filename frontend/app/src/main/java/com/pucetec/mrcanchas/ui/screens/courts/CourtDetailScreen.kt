@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.models.Court
 import com.pucetec.mrcanchas.models.ReservationRequest
 import com.pucetec.mrcanchas.models.TimeSlot
+import com.pucetec.mrcanchas.services.ApiService
 import com.pucetec.mrcanchas.services.RetrofitClient
 import com.pucetec.mrcanchas.services.SessionManager
 import com.pucetec.mrcanchas.ui.components.TimeSlotCard
@@ -227,16 +228,25 @@ fun CourtDetailScreen(
                             items(timeSlots) { slot ->
                                 TimeSlotCard(
                                     timeSlot = slot,
-                                    showReserveButton = !isAdmin && !isGuest,
-                                    onReserveClick = {
+                                    isAdmin = isAdmin,
+                                    onEdit = {
+                                        // TODO: Aquí va tu lógica para editar el horario (ej: abrir un dialog)
+                                        Toast.makeText(context, "Editar horario ID: ${slot.id}", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onDelete = {
+                                        // Lógica para eliminar el horario
                                         scope.launch {
                                             try {
                                                 val api = RetrofitClient.getApiService(context)
-                                                api.createReservation(ReservationRequest(timeSlotId = slot.id))
-                                                Toast.makeText(context, "¡Reserva realizada con éxito!", Toast.LENGTH_SHORT).show()
-                                                onNavigateToMyReservations()
+                                                val response = api.deleteTimeSlot(slot.id)
+                                                if (response.isSuccessful) {
+                                                    Toast.makeText(context, "Horario eliminado correctamente", Toast.LENGTH_SHORT).show()
+                                                    loadData() // Recargar la lista
+                                                } else {
+                                                    Toast.makeText(context, "Error al eliminar horario", Toast.LENGTH_SHORT).show()
+                                                }
                                             } catch (e: Exception) {
-                                                Toast.makeText(context, "Error al reservar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }

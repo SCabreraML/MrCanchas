@@ -14,17 +14,18 @@ import com.pucetec.mrcanchas.models.Reservation
 @Composable
 fun ReservationCard(
     reservation: Reservation,
-    onClick: () -> Unit,
+    onClick: () -> Unit = {},
+    onCancel: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val statusColor = when (reservation.status.uppercase()) {
         "CONFIRMED", "CONFIRMADA" -> Color(0xFF2E7D32)
         "CANCELLED", "CANCELADA" -> Color(0xFFC62828)
+        "COMPLETED" -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.primary
     }
 
     Card(
-        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
@@ -49,7 +50,6 @@ fun ReservationCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Text(
                     text = reservation.status,
                     style = MaterialTheme.typography.labelLarge,
@@ -60,35 +60,28 @@ fun ReservationCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Inicio: ${reservation.startDateTime}",
+                text = "Horario #${reservation.timeSlotId}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Fin: ${reservation.endDateTime}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Reservada: ${reservation.createdAt.take(10)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Ver detalles & Resultados →",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = "Hecho por: ${reservation.ownerUser}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
+            if (reservation.status.uppercase() == "CONFIRMED") {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onCancel,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Cancelar reserva")
+                }
             }
         }
     }

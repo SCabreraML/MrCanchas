@@ -1,11 +1,15 @@
 package com.pucetec.courts_service.services
 
 import com.pucetec.courts_service.dto.request.MatchResultRequest
+import com.pucetec.courts_service.dto.request.TeamScoreRequest
 import com.pucetec.courts_service.dto.response.MatchResultResponse
 import com.pucetec.courts_service.entities.Court
 import com.pucetec.courts_service.entities.MatchResult
 import com.pucetec.courts_service.entities.Reservation
 import com.pucetec.courts_service.entities.TimeSlot
+import com.pucetec.courts_service.exceptions.InvalidTeamsException
+import com.pucetec.courts_service.exceptions.InvalidWinnerException
+import com.pucetec.courts_service.exceptions.MatchResultAlreadyExistsException
 import com.pucetec.courts_service.exceptions.MatchResultNotFoundException
 import com.pucetec.courts_service.exceptions.ReservationNotFoundException
 import com.pucetec.courts_service.mappers.MatchResultMapper
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDate
@@ -53,100 +58,148 @@ class MatchResultServiceTest {
         TimeSlot(
             id = 10L,
             court = sampleCourt(),
-            date = LocalDate.of(2026, 8, 10),
+            date = LocalDate.of(2026, 12, 10),
             startTime = LocalTime.of(9, 0),
             endTime = LocalTime.of(10, 0),
-            status = TimeSlot.Status.RESERVED
+            status = TimeSlot.Status.AVAILABLE
         )
 
-    private fun sampleReservation(id: Long = 100L) =
+    private fun sampleReservation() =
         Reservation(
-            id = id,
+            id = 100L,
             timeSlot = sampleTimeSlot(),
-            ownerUser = "user-sub-123",
-            status = Reservation.Status.CONFIRMED,
-            createdAt = LocalDateTime.of(2026, 8, 5, 12, 0)
+            ownerUser = "user1",
+            startDateTime = LocalDateTime.of(2026, 12, 10, 9, 0),
+            endDateTime = LocalDateTime.of(2026, 12, 10, 10, 0),
+            status = Reservation.Status.CONFIRMED
         )
 
-    private fun sampleRequest() =
-        MatchResultRequest(
-            teamA = "Team A",
-            teamB = "Team B",
-            scoreA = 3,
-            scoreB = 1,
-            winner = "Team A",
-            playedAt = LocalDateTime.of(2026, 8, 10, 10, 0)
-        )
-
-    private fun sampleMatchResult(reservation: Reservation) =
+    private fun sampleMatchResult() =
         MatchResult(
-            id = 500L,
-            reservation = reservation,
-            teamA = "Team A",
-            teamB = "Team B",
+            id = 50L,
+            reservation = sampleReservation(),
+            teamA = "Team Red",
             scoreA = 3,
+            teamB = "Team Blue",
             scoreB = 1,
-            winner = "Team A",
-            playedAt = LocalDateTime.of(2026, 8, 10, 10, 0)
+            winner = "Team Red",
+            status = MatchResult.MatchStatus.FINISHED,
+            playedAt = LocalDateTime.of(2026, 12, 10, 10, 0)
+        )
+
+    private fun sampleRequest(winner: String? = "Team Red") =
+        MatchResultRequest(
+            teams = listOf(
+                TeamScoreRequest(name = "Team Red", score = 3),
+                TeamScoreRequest(name = "Team Blue", score = 1)
+            ),
+            winner = winner,
+            status = MatchResult.MatchStatus.FINISHED
         )
 
     private fun sampleResponse() =
         MatchResultResponse(
-            id = 500L,
+            id = 50L,
             reservationId = 100L,
-            teamA = "Team A",
-            teamB = "Team B",
+            status = MatchResult.MatchStatus.FINISHED.name,
+            teamA = "Team Red",
+            teamB = "Team Blue",
             scoreA = 3,
             scoreB = 1,
-            winner = "Team A",
-            playedAt = LocalDateTime.of(2026, 8, 10, 10, 0)
+            winner = "Team Red",
+            playedAt = LocalDateTime.of(2026, 12, 10, 10, 0)
         )
 
     @Test
-    fun `create saves the result and completes the reservation`() {
-        val reservation = sampleReservation()
-        val request = sampleRequest()
-        val entity = sampleMatchResult(reservation)
+    fun `findByReservation returns match result when exists`() {
+        val matchResult = sampleMatchResult()
 
-        `when`(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation))
-        `when`(matchResultMapper.toEntity(request, reservation)).thenReturn(entity)
-        `when`(matchResultRepository.save(entity)).thenReturn(entity)
-        `when`(matchResultMapper.toResponse(entity)).thenReturn(sampleResponse())
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(matchResult)
+        `when`(matchResultMapper.toResponse(matchResult)).thenReturn(sampleResponse())
 
-        val result = matchResultService.create(100L, request)
+        val result = matchResultService.findByReservation(100L)
 
-        assertEquals(500L, result.id)
-        assertEquals(Reservation.Status.COMPLETED, reservation.status)
+        assertEquals(50L, result.id)
     }
 
     @Test
-    fun `create throws ReservationNotFoundException when the reservation does not exist`() {
-        val request = sampleRequest()
-        `when`(reservationRepository.findById(99L)).thenReturn(Optional.empty())
+    fun `findByReservation throws MatchResultNotFoundException when not exists`() {
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(null)
 
-        assertThrows<ReservationNotFoundException> {
-            matchResultService.create(99L, request)
+        assertThrows<MatchResultNotFoundException> {
+            matchResultService.findByReservation(100L)
         }
     }
 
     @Test
-    fun `findByReservation returns the result when it exists`() {
+    fun `create saves and returns match result when valid`() {
         val reservation = sampleReservation()
-        val entity = sampleMatchResult(reservation)
-        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(entity)
-        `when`(matchResultMapper.toResponse(entity)).thenReturn(sampleResponse())
+        val request = sampleRequest()
+        val matchResult = sampleMatchResult()
 
-        val result = matchResultService.findByReservation(100L)
+        `when`(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation))
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(null)
+        `when`(matchResultRepository.save(anyNonNull())).thenReturn(matchResult)
+        `when`(matchResultMapper.toResponse(matchResult)).thenReturn(sampleResponse())
 
-        assertEquals(500L, result.id)
+        val result = matchResultService.create(100L, request)
+
+        assertEquals(50L, result.id)
+        verify(matchResultRepository).save(anyNonNull())
     }
 
     @Test
-    fun `findByReservation throws MatchResultNotFoundException when it does not exist`() {
-        `when`(matchResultRepository.findByReservationId(99L)).thenReturn(null)
+    fun `create throws ReservationNotFoundException when reservation missing`() {
+        val request = sampleRequest()
+        `when`(reservationRepository.findById(100L)).thenReturn(Optional.empty())
 
-        assertThrows<MatchResultNotFoundException> {
-            matchResultService.findByReservation(99L)
+        assertThrows<ReservationNotFoundException> {
+            matchResultService.create(100L, request)
+        }
+    }
+
+    @Test
+    fun `create throws MatchResultAlreadyExistsException when result already registered`() {
+        val reservation = sampleReservation()
+        val request = sampleRequest()
+
+        `when`(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation))
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(sampleMatchResult())
+
+        assertThrows<MatchResultAlreadyExistsException> {
+            matchResultService.create(100L, request)
+        }
+    }
+
+    @Test
+    fun `create throws InvalidTeamsException when team names are identical`() {
+        val reservation = sampleReservation()
+        val request = MatchResultRequest(
+            teams = listOf(
+                TeamScoreRequest(name = "Team Red", score = 3),
+                TeamScoreRequest(name = "TEAM RED", score = 1)
+            ),
+            status = MatchResult.MatchStatus.FINISHED
+        )
+
+        `when`(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation))
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(null)
+
+        assertThrows<InvalidTeamsException> {
+            matchResultService.create(100L, request)
+        }
+    }
+
+    @Test
+    fun `create throws InvalidWinnerException when winner is not in team list`() {
+        val reservation = sampleReservation()
+        val request = sampleRequest(winner = "Unknown Team")
+
+        `when`(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation))
+        `when`(matchResultRepository.findByReservationId(100L)).thenReturn(null)
+
+        assertThrows<InvalidWinnerException> {
+            matchResultService.create(100L, request)
         }
     }
 }

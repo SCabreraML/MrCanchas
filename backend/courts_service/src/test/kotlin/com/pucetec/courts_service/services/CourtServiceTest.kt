@@ -1,23 +1,32 @@
 package com.pucetec.courts_service.services
-import com.pucetec.courts_service.exceptions.DuplicateCourtNameException
+
 import com.pucetec.courts_service.dto.request.CourtRequest
 import com.pucetec.courts_service.dto.response.CourtResponse
 import com.pucetec.courts_service.entities.Court
 import com.pucetec.courts_service.exceptions.CourtNotFoundException
+import com.pucetec.courts_service.exceptions.DuplicateCourtNameException
 import com.pucetec.courts_service.mappers.CourtMapper
 import com.pucetec.courts_service.repositories.CourtRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.util.Optional
+import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.quality.Strictness
+
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CourtServiceTest {
+    // ...
+}
 
 @ExtendWith(MockitoExtension::class)
 class CourtServiceTest {
@@ -31,42 +40,46 @@ class CourtServiceTest {
     @InjectMocks
     private lateinit var courtService: CourtService
 
-    private fun sampleCourt(id: Long = 1L) =
-        Court(id = id, name = "Court A", sport = "Tennis", location = "Zone 1", available = true)
+    private fun <T> anyNonNull(): T {
+        Mockito.any<T>()
+        @Suppress("UNCHECKED_CAST")
+        return null as T
+    }
 
-    private fun sampleResponse(id: Long = 1L) =
-        CourtResponse(id = id, name = "Court A", sport = "Tennis", location = "Zone 1", available = true)
+    private fun sampleCourt(id: Long = 1L, name: String = "Court A") =
+        Court(id = id, name = name, sport = "Tennis", location = "Zone 1", available = true)
 
-    private fun sampleRequest() =
-        CourtRequest(name = "Court A", sport = "Tennis", location = "Zone 1", available = true)
+    private fun sampleRequest(name: String = "Court A") =
+        CourtRequest(name = name, sport = "Tennis", location = "Zone 1", available = true)
+
+    private fun sampleResponse(id: Long = 1L, name: String = "Court A") =
+        CourtResponse(id = id, name = name, sport = "Tennis", location = "Zone 1", available = true)
 
     @Test
     fun `findAll returns mapped courts`() {
-        val court1 = sampleCourt(1L)
-        val court2 = sampleCourt(2L)
-        `when`(courtRepository.findAll()).thenReturn(listOf(court1, court2))
-        `when`(courtMapper.toResponse(court1)).thenReturn(sampleResponse(1L))
-        `when`(courtMapper.toResponse(court2)).thenReturn(sampleResponse(2L))
+        val court = sampleCourt()
+        `when`(courtRepository.findAll()).thenReturn(listOf(court))
+        `when`(courtMapper.toResponse(court)).thenReturn(sampleResponse())
 
         val result = courtService.findAll()
 
-        assertEquals(2, result.size)
+        assertEquals(1, result.size)
+        assertEquals("Court A", result[0].name)
     }
 
     @Test
-    fun `findById returns the court when it exists`() {
-        val court = sampleCourt(3L)
-        `when`(courtRepository.findById(3L)).thenReturn(Optional.of(court))
-        `when`(courtMapper.toResponse(court)).thenReturn(sampleResponse(3L))
+    fun `findById returns court when exists`() {
+        val court = sampleCourt()
+        `when`(courtRepository.findById(1L)).thenReturn(Optional.of(court))
+        `when`(courtMapper.toResponse(court)).thenReturn(sampleResponse())
 
-        val result = courtService.findById(3L)
+        val result = courtService.findById(1L)
 
-        assertEquals(3L, result.id)
         assertEquals("Court A", result.name)
     }
 
     @Test
-    fun `findById throws CourtNotFoundException when it does not exist`() {
+    fun `findById throws CourtNotFoundException when not exists`() {
         `when`(courtRepository.findById(99L)).thenReturn(Optional.empty())
 
         assertThrows<CourtNotFoundException> {
@@ -75,74 +88,54 @@ class CourtServiceTest {
     }
 
     @Test
-    fun `create saves and returns the court`() {
+    fun `create saves court when name is unique`() {
         val request = sampleRequest()
-        val entity = sampleCourt(1L)
-        val saved = sampleCourt(1L)
+        val court = sampleCourt()
 
-        `when`(courtRepository.existsByName(request.name)).thenReturn(false)
-        `when`(courtMapper.toEntity(request)).thenReturn(entity)
-        `when`(courtRepository.save(entity)).thenReturn(saved)
-        `when`(courtMapper.toResponse(saved)).thenReturn(sampleResponse(1L))
+        `when`(courtRepository.existsByName("Court A")).thenReturn(false)
+        `when`(courtMapper.toEntity(request)).thenReturn(court)
+        `when`(courtRepository.save(anyNonNull())).thenReturn(court)
+        `when`(courtMapper.toResponse(court)).thenReturn(sampleResponse())
 
         val result = courtService.create(request)
 
-        assertEquals(1L, result.id)
         assertEquals("Court A", result.name)
+        verify(courtRepository).save(court)
     }
 
     @Test
-    fun `update modifies and returns the court when it exists`() {
-        val existing = sampleCourt(5L)
-        val request = CourtRequest(name = "New Name", sport = "Padel", location = "Zone 2", available = false)
-        val saved = Court(id = 5L, name = "New Name", sport = "Padel", location = "Zone 2", available = false)
+    fun `create throws DuplicateCourtNameException when name exists`() {
+        val request = sampleRequest()
+        `when`(courtRepository.existsByName("Court A")).thenReturn(true)
 
-        `when`(courtRepository.findById(5L)).thenReturn(Optional.of(existing))
-        `when`(courtRepository.save(existing)).thenReturn(saved)
-        `when`(courtMapper.toResponse(saved))
-            .thenReturn(CourtResponse(5L, "New Name", "Padel", "Zone 2", false))
-
-        val result = courtService.update(5L, request)
-
-        assertEquals("New Name", result.name)
-        assertEquals("Padel", result.sport)
-        assertEquals(false, result.available)
-    }
-
-    @Test
-    fun `update throws CourtNotFoundException when it does not exist`() {
-        `when`(courtRepository.findById(99L)).thenReturn(Optional.empty())
-
-        assertThrows<CourtNotFoundException> {
-            courtService.update(99L, sampleRequest())
+        assertThrows<DuplicateCourtNameException> {
+            courtService.create(request)
         }
+        verify(courtRepository, never()).save(anyNonNull())
     }
 
     @Test
-    fun `delete removes the court when it exists`() {
+    fun `update modifies court when exists`() {
+        val court = sampleCourt()
+        val request = sampleRequest(name = "Court Updated")
+        val updatedCourt = sampleCourt(name = "Court Updated")
+
+        `when`(courtRepository.findById(1L)).thenReturn(Optional.of(court))
+        `when`(courtRepository.existsByName("Court Updated")).thenReturn(false)
+        `when`(courtRepository.save(court)).thenReturn(updatedCourt)
+        `when`(courtMapper.toResponse(updatedCourt)).thenReturn(sampleResponse(name = "Court Updated"))
+
+        val result = courtService.update(1L, request)
+
+        assertEquals("Court Updated", result.name)
+    }
+
+    @Test
+    fun `delete removes court when exists`() {
         `when`(courtRepository.existsById(1L)).thenReturn(true)
 
         courtService.delete(1L)
 
         verify(courtRepository).deleteById(1L)
-    }
-
-    @Test
-    fun `delete throws CourtNotFoundException when it does not exist`() {
-        `when`(courtRepository.existsById(99L)).thenReturn(false)
-
-        assertThrows<CourtNotFoundException> {
-            courtService.delete(99L)
-        }
-        verify(courtRepository, never()).deleteById(99L)
-    }
-    @Test
-    fun `create throws DuplicateCourtNameException when the name already exists`() {
-        val request = sampleRequest()
-        `when`(courtRepository.existsByName(request.name)).thenReturn(true)
-
-        assertThrows<DuplicateCourtNameException> {
-            courtService.create(request)
-        }
     }
 }

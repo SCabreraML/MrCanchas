@@ -64,8 +64,11 @@ fun MainAppNavHost() {
             composable("home") {
                 HomeScreen(
                     onNavigateToCourts = { navController.navigate("courts") },
-                    onNavigateToTimeSlots = { navController.navigate("time-slots") }, // NUEVO
+                    onNavigateToTimeSlots = { navController.navigate("time-slots") },
                     onNavigateToReservations = { navController.navigate("reservations") },
+                    onNavigateToMatchResult = { reservationId ->        // NUEVO
+                        navController.navigate("match_results/$reservationId")
+                    },
                     onLogout = {
                         sessionManager.clearSession()
                         navController.navigate("login") {

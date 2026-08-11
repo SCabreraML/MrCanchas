@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     // Standard URL when running on Android emulator connecting to host reverse proxy on port 8888
-    private const val BASE_URL = "http://192.168.100.7:8888/"
+    private const val BASE_URL = "http://172.22.5.58:8888/"
 
     private var apiService: ApiService? = null
 

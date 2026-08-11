@@ -17,13 +17,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pucetec.mrcanchas.services.SessionManager
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToCourts: () -> Unit,
-    onNavigateToTimeSlots: () -> Unit,   // NUEVO
+    onNavigateToTimeSlots: () -> Unit,
     onNavigateToReservations: () -> Unit,
+    onNavigateToMatchResult: (Long) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -34,6 +39,8 @@ fun HomeScreen(
     val userEmail = sessionManager.getUserEmail() ?: "Acceso Público"
     val isAdmin = sessionManager.isAdmin()
     val isGuest = sessionManager.isGuest()
+    var showResultDialog by remember { mutableStateOf(false) }
+    var reservationIdInput by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -238,7 +245,45 @@ fun HomeScreen(
                     }
                 }
             }
-
+            // NUEVO — Registrar resultado (solo ADMIN)
+            if (isAdmin) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { showResultDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Resultados",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = "Registrar resultado",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Ingresa el número de reserva",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
             // Mis Reservas is ONLY visible to USER role (Admins and Guests do not have a /me reservations query permission)
             if (!isAdmin && !isGuest) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -278,6 +323,45 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
+            // NUEVO — diálogo para ingresar el número de reserva
+            if (showResultDialog) {
+                AlertDialog(
+                    onDismissRequest = { showResultDialog = false },
+                    title = { Text("Registrar resultado") },
+                    text = {
+                        Column {
+                            Text("Ingresa el número de la reserva del partido:")
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = reservationIdInput,
+                                onValueChange = { if (it.all { c -> c.isDigit() }) reservationIdInput = it },
+                                label = { Text("N° de reserva") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                val id = reservationIdInput.toLongOrNull()
+                                if (id != null && id > 0) {
+                                    showResultDialog = false
+                                    reservationIdInput = ""
+                                    onNavigateToMatchResult(id)
+                                }
+                            }
+                        ) {
+                            Text("Continuar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showResultDialog = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
             }
         }
     }
