@@ -1,110 +1,120 @@
-# MrCanchas - Guía de Configuración de AWS Cognito
+# MrCanchas - Guía de Configuración y Arranque del Proyecto
 
-Esta guía describe detalladamente cómo crear y configurar un nuevo **User Pool en AWS Cognito**, configurar el flujo de autenticación, y conectar tanto la aplicación móvil Android como los microservicios del backend.
-
----
-
-## 1. Crear un User Pool en AWS Cognito
-
-Sigue estos pasos en la Consola de AWS para configurar el pool de usuarios:
-
-1. Ve al servicio **Cognito** en la Consola de AWS y haz clic en **Create user pool**.
-2. **Configure sign-in experience (Experiencia de inicio de sesión):**
-   - Selecciona **Cognito user pool**.
-   - Bajo **User pool sign-in options**, selecciona **Email**.
-   - Haz clic en **Next**.
-3. **Configure security requirements (Requisitos de seguridad):**
-   - Elige la política de contraseñas de tu preferencia (ej. longitud mínima de 8 caracteres con números y símbolos).
-   - En **Multi-factor authentication (MFA)**, selecciona **No MFA** para pruebas rápidas (o configúralo si lo necesitas).
-   - En **User account recovery**, asegúrate de que esté habilitada la opción de autorecuperación por correo electrónico.
-   - Haz clic en **Next**.
-4. **Configure sign-up experience (Experiencia de registro):**
-   - Deja las opciones de registro por defecto habilitadas (permitir el autoregistro de usuarios).
-   - En **Required attributes**, asegúrate de que el atributo `email` esté seleccionado.
-   - Haz clic en **Next**.
-5. **Configure message delivery (Envío de mensajes):**
-   - Selecciona **Send email with Cognito** para utilizar el límite gratuito de correos de Cognito diariamente, o asócialo con **Amazon SES** si tienes un entorno productivo.
-   - Haz clic en **Next**.
-6. **Integrate your app (Integrar tu aplicación):**
-   - Introduce un **User pool name** (ej. `MrCanchasUserPool`).
-   - Bajo **Hosted authentication pages**, marca **Use the Cognito Hosted UI** si deseas utilizar la interfaz de login provista por AWS.
-   - Configura el **Domain**: elige un prefijo de dominio disponible para tu Hosted UI (ej. `mrcanchas-auth`).
-   - En **Initial app client**:
-     - Elige **Public client** (apropiado para aplicaciones móviles ya que no pueden guardar secretos de forma segura).
-     - Asigna un **App client name** (ej. `MrCanchasAndroidApp`).
-     - **Client secret**: Selecciona **Don't generate a client secret** (requisito crítico para aplicaciones Android públicas).
-     - **Allowed callback URLs**: Añade la URL de callback que procesará la redirección tras el login, por ejemplo:
-       - Para pruebas locales del backend: `http://localhost:8888/login/oauth2/code/cognito`
-       - Para redirección profunda en la app móvil: `mrcanchas://callback`
-     - **Allowed sign-out URLs**: Añade las URLs de cierre de sesión, por ejemplo: `mrcanchas://signout`
-   - Expande **Advanced app client settings**:
-     - Bajo **OAuth 2.0 grant types**, asegúrate de habilitar **Authorization code grant** e **Implicit grant**.
-     - Bajo **OpenID Connect scopes**, selecciona **phone**, **email**, **openid** y **profile**.
-   - Haz clic en **Next**.
-7. Revisa toda la configuración y haz clic en **Create user pool**.
+Este repositorio contiene tanto los microservicios del **Backend** (`backend/`) como la aplicación móvil **Frontend** Android (`frontend/`) para el sistema de reserva de canchas deportivas **MrCanchas**.
 
 ---
 
-## 2. Configurar Grupos y Roles (Admin vs User)
+## 1. Requisitos Previos
 
-El backend de MrCanchas cuenta con endpoints protegidos que requieren el rol `ADMIN`. Puedes manejar esto de la siguiente manera:
-
-1. Dentro de tu User Pool creado, ve a la pestaña **Groups**.
-2. Crea un grupo llamado `ADMIN` y otro llamado `USER`.
-3. Para simular o asignar un rol administrativo a un usuario, simplemente agrégalo al grupo `ADMIN` desde la consola de Cognito. El token JWT devuelto contendrá un claim `cognito:groups` con valor `["ADMIN"]`.
+Asegúrate de tener instalados los siguientes componentes antes de iniciar:
+- **Docker** y **Docker Compose** (Para orquestar el Backend).
+- **Java JDK 17** (Requerido tanto para el Backend como para compilar la app móvil).
+- **Android Studio** (Recomendado para editar, emular y depurar la aplicación móvil).
+- Una cuenta de **AWS** con un **User Pool de Cognito** configurado.
 
 ---
 
-## 3. Configuración en la Aplicación Móvil Android
+## 2. Cómo Levantar el Backend (Microservicios)
 
-En la aplicación móvil, utilizamos el token JWT (Access Token) que nos entrega Cognito para autorizar las solicitudes al API Gateway.
+El backend consta de microservicios de Spring Boot (`users` y `courts_service`) detrás de un Proxy Inverso (Nginx) y bases de datos PostgreSQL.
 
-### A. Almacenamiento Seguro
-Cuando un usuario inicia sesión en la Hosted UI de Cognito o mediante un flujo directo con Amplify/AWS SDK:
-1. Obtenemos el `access_token` entregado por Cognito.
-2. Guardamos este token de manera local en la app a través del `SessionManager`.
-3. El `RetrofitClient` interceptará automáticamente todas las llamadas HTTPS de la app e inyectará la cabecera:
-   ```http
-   Authorization: Bearer <TU_ACCESS_TOKEN>
+1. Abre una terminal en la raíz del proyecto.
+2. Navega al directorio del backend:
+   ```bash
+   cd backend
+   ```
+3. Crea/Configura las variables de entorno necesarias en un archivo `.env` en esa misma carpeta, o configúralas en tu terminal. Las variables clave son:
+   - `USERS_DB_USER`, `USERS_DB_PASSWORD`, `USERS_DB_NAME` (Bases de datos de usuarios).
+   - `COURTS_DB_USER`, `COURTS_DB_PASSWORD`, `COURTS_DB_NAME` (Bases de datos de canchas).
+   - `COGNITO_ISSUER_URI`: `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7mxhfj2lt` (Reemplaza con tu User Pool ID).
+4. Levanta todos los contenedores con Docker Compose:
+   ```bash
+   docker-compose up --build -d
+   ```
+5. Esto levantará:
+   - El Proxy Inverso (Nginx) expuesto públicamente en el puerto **`8888`** (ej. `http://localhost:8888`).
+   - El microservicio de usuarios en `/users` (`http://localhost:8888/users`).
+   - El microservicio de canchas en `/courts` (`http://localhost:8888/courts`).
+   - PGAdmin expuesto en el puerto `5051` para la administración de las bases de datos.
+
+---
+
+## 3. Cómo Levantar la Aplicación Móvil Android (Frontend)
+
+La aplicación móvil está construida con **Jetpack Compose** y consume las APIs del backend mediante Retrofit.
+
+### Opción A: Desde Android Studio (Recomendado)
+1. Inicia **Android Studio**.
+2. Haz clic en **Open an Existing Project** y selecciona el directorio `frontend` de este repositorio.
+3. Espera a que Android Studio descargue las dependencias y sincronice el proyecto con Gradle.
+4. Conecta un dispositivo físico con depuración USB activada o inicia un **Dispositivo Virtual (Emulador)** desde el Device Manager.
+5. Haz clic en el botón de reproducción verde **Run 'app'** en la barra de herramientas superior para instalar y ejecutar la aplicación.
+
+### Opción B: Desde la Línea de Comandos (Command Line)
+Si prefieres no usar la interfaz de Android Studio, puedes compilar e instalar la app directamente con Gradle:
+
+1. Abre tu terminal en la raíz del proyecto y entra al directorio `frontend`:
+   ```bash
+   cd frontend
+   ```
+2. Asegúrate de dar permisos de ejecución al wrapper de Gradle (solo Unix/macOS):
+   ```bash
+   chmod +x gradlew
+   ```
+3. Compila el proyecto para verificar que no haya errores de sintaxis:
+   ```bash
+   ./gradlew compileDebugSources
+   ```
+4. Ejecuta las pruebas unitarias del frontend:
+   ```bash
+   ./gradlew test
+   ```
+5. Genera el archivo APK de depuración instalable:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   *(El archivo APK generado estará disponible en `app/build/outputs/apk/debug/app-debug.apk`)*.
+6. Si tienes un emulador corriendo o un teléfono conectado por ADB, instálalo directamente ejecutando:
+   ```bash
+   ./gradlew installDebug
    ```
 
-### B. Probar el flujo de Login en el Emulador
-Dado que los microservicios están dockerizados en la máquina local, el emulador de Android accede al Proxy Inverso de la máquina host mediante la IP loopback especial `10.0.2.2`.
-1. **Paso 1**: Obtén un `access_token` válido de tu Hosted UI de Cognito usando un navegador web o Postman.
-2. **Paso 2**: Abre la app de MrCanchas en tu Emulador.
-3. **Paso 3**: En la pantalla de Login, pega el `access_token` en el campo correspondiente.
-4. **Paso 4**: Completa los datos de perfil (Nombre, Email, Teléfono) y selecciona si deseas simular el rol de Administrador.
-5. **Paso 5**: Presiona **Registrar e Iniciar Sesión**. La app enviará estos datos al microservicio `users` utilizando el token de Cognito para dar de alta tu perfil local.
+---
+
+## 4. Pruebas y Conectividad (Emulador vs Host)
+
+Cuando ejecutas la aplicación en un **Emulador de Android**, este corre en una red virtual aislada. Para que la aplicación pueda conectarse a los microservicios que tienes levantados en tu máquina local:
+- La app móvil está configurada por defecto para comunicarse con la IP **`http://10.0.2.2:8888/`**.
+- `10.0.2.2` es un alias especial del emulador de Android que redirige automáticamente las peticiones al puerto `8888` de la máquina host local (donde se ejecuta tu proxy inverso de Nginx).
 
 ---
 
-## 4. Configuración de Tu Nuevo Pool de Cognito (Móvil)
+## 5. Guía de Configuración de AWS Cognito
 
-Has configurado exitosamente un nuevo User Pool para la aplicación móvil con los siguientes datos:
+### A. Crear el User Pool en Cognito
+Sigue estos pasos en la Consola de AWS para configurar el pool de usuarios para la app móvil:
+1. Ve al servicio **Cognito** y haz clic en **Create user pool**.
+2. **Configure sign-in experience**: Selecciona **Cognito user pool** y marca **Email**.
+3. **Configure security requirements**: Selecciona **No MFA** para pruebas rápidas, o el de tu preferencia.
+4. **Configure sign-up experience**: Deja activado el autoregistro y selecciona `email` como atributo requerido.
+5. **Configure message delivery**: Elige **Send email with Cognito** para utilizar la cuota gratuita diaria.
+6. **Integrate your app**:
+   - Da un nombre al User Pool (ej. `MrCanchasUserPool`).
+   - En **Initial app client**, selecciona **Public client** (las apps móviles no deben guardar secretos).
+   - Elige un nombre para el cliente (ej. `MrCanchasAndroidApp`).
+   - En **Client secret**, asegúrate de marcar **Don't generate a client secret**.
+   - En **Allowed callback URLs**, ingresa `mrcanchas://callback` y para pruebas de backend `http://localhost:8888/login/oauth2/code/cognito`.
+   - Bajo **Advanced app client settings**: Asegúrate de activar **USER_PASSWORD_AUTH** (para permitir el login directo por usuario y contraseña desde la app móvil).
+7. Revisa toda la configuración y haz clic en **Create user pool**.
+
+### B. Configurar Grupos y Roles (Admin vs User)
+El backend de MrCanchas cuenta con endpoints protegidos que requieren el rol `ADMIN`.
+1. Dentro de tu User Pool, ve a la pestaña **Groups**.
+2. Crea un grupo llamado `ADMIN` y otro llamado `USER`.
+3. Para asignar un rol de administrador a un usuario, agrégalo al grupo `ADMIN` desde la consola. La aplicación móvil decodificará automáticamente el token JWT y detectará si pertenece a dicho grupo para habilitar o restringir vistas.
+
+### C. Parámetros de Tu Pool Configurado
 - **Dominio de Autenticación**: `https://us-east-17mxhfj2lt.auth.us-east-1.amazoncognito.com`
 - **ID de Cliente (App Client ID)**: `5n067t1f01s9pn6f6a0qbpmamf`
 - **Región**: `us-east-1`
 - **Roles**: `USER` y `ADMIN` (Grupos en Cognito)
-
-### Configuración en la Aplicación Móvil
-La aplicación móvil está configurada para realizar la autenticación mediante **usuario y contraseña** directamente desde la interfaz móvil de la aplicación (flujo `USER_PASSWORD_AUTH`).
-
-1. Se utiliza el App Client ID (`5n067t1f01s9pn6f6a0qbpmamf`) para comunicarse directamente con la API de Cognito: `https://cognito-idp.us-east-1.amazonaws.com`.
-2. Al ingresar el usuario y contraseña, la aplicación ejecuta una solicitud segura `InitiateAuth` hacia Cognito.
-3. Se extrae el `AccessToken` JWT que nos devuelve de forma segura y se almacena en SharedPreferences.
-4. El token es utilizado para crear o sincronizar automáticamente el perfil de usuario contra el backend de MrCanchas.
-
----
-
-## 5. Configuración en el Backend (Microservicios)
-
-Para que los microservicios de Spring Boot (tanto `users` como `courts_service`) validen correctamente los tokens firmados por tu nuevo pool de Cognito, debes configurar la variable de entorno `COGNITO_ISSUER_URI` en tu archivo `docker-compose.yml` o en el entorno de ejecución:
-
-```yaml
-environment:
-  COGNITO_ISSUER_URI: "https://cognito-idp.us-east-1.amazonaws.com/<ID_DE_TU_USER_POOL_DE_COGNITO>"
-```
-
-*(Nota: Puedes obtener el **User Pool ID** desde la consola de AWS Cognito, tiene un formato similar a `us-east-1_xxxxxxxxx`).*
-
-Esto permite que Spring Security descargue automáticamente las claves públicas de firma de tokens (JWKS) desde la dirección de tu nuevo pool de Cognito para validar la autenticidad de los tokens enviados desde la aplicación móvil.

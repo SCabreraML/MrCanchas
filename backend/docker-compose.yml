@@ -3,9 +3,9 @@ services:
   users-db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${USERS_DB_USER}
-      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
-      POSTGRES_DB: ${USERS_DB_NAME}
+      POSTGRES_USER: users_user
+      POSTGRES_PASSWORD: users_password
+      POSTGRES_DB: users_db
     expose:
       - "5432"
     volumes:
@@ -25,7 +25,7 @@ services:
       - "-c"
       - "log_disconnections=on"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${USERS_DB_USER} -d ${USERS_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U users_user -d users_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,9 +33,9 @@ services:
   courts-db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${COURTS_DB_USER}
-      POSTGRES_PASSWORD: ${COURTS_DB_PASSWORD}
-      POSTGRES_DB: ${COURTS_DB_NAME}
+      POSTGRES_USER: courts_user
+      POSTGRES_PASSWORD: courts_password
+      POSTGRES_DB: courts_db
     expose:
       - "5432"
     volumes:
@@ -55,7 +55,7 @@ services:
       - "-c"
       - "log_disconnections=on"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${COURTS_DB_USER} -d ${COURTS_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U courts_user -d courts_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -65,10 +65,12 @@ services:
     environment:
       SERVER_SERVLET_CONTEXT_PATH: "/users"
       SERVER_FORWARD_HEADERS_STRATEGY: FRAMEWORK
-      SPRING_DATASOURCE_URL: jdbc:postgresql://users-db:5432/${USERS_DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${USERS_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD}
-      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://users-db:5432/users_db
+      SPRING_DATASOURCE_USERNAME: users_user
+      SPRING_DATASOURCE_PASSWORD: users_password
+
+      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7MxHFj2lT    
     expose:
       - "8686"
     depends_on:
@@ -80,10 +82,12 @@ services:
     environment:
       SERVER_SERVLET_CONTEXT_PATH: "/courts"
       SERVER_FORWARD_HEADERS_STRATEGY: FRAMEWORK
-      SPRING_DATASOURCE_URL: jdbc:postgresql://courts-db:5432/${COURTS_DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${COURTS_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${COURTS_DB_PASSWORD}
-      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://courts-db:5432/courts_db
+      SPRING_DATASOURCE_USERNAME: courts_user
+      SPRING_DATASOURCE_PASSWORD: courts_password
+
+      COGNITO_ISSUER_URI: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7MxHFj2lT
     expose:
       - "8989"
     depends_on:
